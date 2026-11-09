@@ -3281,6 +3281,8 @@
       let selected = Array.isArray(initial.engines) && initial.engines.length ? [...initial.engines] : [legacy];
       let newTab = initial.newTab !== false;
 
+      let tileComment = tile?.comment || "";
+
       const renderManager = () => {
         const catalog = getSearchEngines();
         openModal(`
