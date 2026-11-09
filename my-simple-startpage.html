@@ -1,0 +1,4265 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ma Startpage</title>
+  <!-- Favicon mise à jour dynamiquement (voir renderHeader) -->
+  <link id="favicon" rel="icon" />
+  <style>
+    /* ================================================================
+     THÈMES — Toutes les couleurs passent par des variables CSS.
+     Ajouter un thème = ajouter un bloc [data-theme="..."].
+  ================================================================ */
+    :root {
+      --radius: 14px;
+      --radius-sm: 10px;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg: radial-gradient(1200px 800px at 80% -10%, #1b2233 0%, #0e1116 55%);
+      --surface: #171c26;
+      --surface-2: #1d2330;
+      --text: #e8ebf2;
+      --muted: #8d95a8;
+      --border: #262d3d;
+      --accent: #6d8dff;
+      --accent-soft: rgba(109, 141, 255, 0.15);
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      color-scheme: dark;
+    }
+
+    [data-theme="light"] {
+      --bg: radial-gradient(1200px 800px at 80% -10%, #e8edfb 0%, #f6f7fb 55%);
+      --surface: #ffffff;
+      --surface-2: #f2f4f9;
+      --text: #1b2334;
+      --muted: #5c6579;
+      --border: #e3e7f0;
+      --accent: #3b5bdb;
+      --accent-soft: rgba(59, 91, 219, 0.12);
+      --shadow: 0 8px 24px rgba(30, 41, 80, 0.12);
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ================= Barre supérieure ================= */
+    #topbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 16px;
+      padding: 22px clamp(16px, 4vw, 48px) 10px;
+
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+
+      border-bottom: 1px solid var(--border);
+
+      transition:
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+    }
+
+    [data-theme="dark"] #topbar {
+      background: rgba(23, 28, 38, 0.88);
+    }
+
+    [data-theme="light"] #topbar {
+      background: rgba(255, 255, 255, 0.90);
+    }
+
+    #topbar.scrolled {
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .brand-row {
+      display: block;
+    }
+
+
+    .title-logo {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .title-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      height: 56px;
+    }
+
+    .title-logo img {
+      height: 100%;
+      width: auto;
+      max-width: 140px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 0.2px;
+      display: inline-block;
+    }
+
+    .brand .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1.05rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+      background: var(--surface-2);
+    }
+
+    .icon-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .icon-btn.danger:hover {
+      border-color: #e05252;
+      color: #e05252;
+    }
+
+    .text-btn {
+      border: 1px dashed var(--border);
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .text-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* ================= Conteneur principal ================= */
+    main {
+      padding: 10px clamp(16px, 4vw, 48px) 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ================= Ensemble de tuiles (groupe) ================= */
+    .group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .group.drag-over {
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      user-select: none;
+    }
+
+    .group-title {
+      font-weight: 600;
+      font-size: 1.02rem;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chevron {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: var(--surface-2);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.25s, color 0.2s;
+    }
+
+    .group.collapsed .chevron {
+      transform: rotate(-90deg);
+    }
+
+    .group-header:hover .chevron {
+      color: var(--text);
+    }
+
+    /* Animation de repli : grid-template-rows 0fr -> 1fr */
+    .group-body {
+      display: grid;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows 0.3s ease;
+    }
+
+    .group.collapsed .group-body {
+      grid-template-rows: 0fr;
+    }
+
+    .group-body-inner {
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .tiles-grid {
+      display: grid;
+      gap: 12px;
+      padding: 4px 16px 16px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    /* ================= Widgets intégrés à la topbar ================= */
+    #topbarWidgets {
+      flex: 1 1 420px;
+      min-width: 220px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #topbarWidgets:empty {
+      display: none;
+    }
+
+    #topbarWidgets .group[data-layout="header"] {
+      width: min(var(--header-widget-width, 620px), 100%);
+      margin: 0;
+      background: transparent;
+      border-color: transparent;
+      overflow: visible;
+    }
+
+    #topbarWidgets .group[data-layout="header"] .group-header {
+      display: none;
+    }
+
+    body.edit-mode #topbarWidgets .group[data-layout="header"] {
+      background: var(--surface);
+      border-color: var(--accent);
+    }
+
+    body.edit-mode #topbarWidgets .group[data-layout="header"] .group-header {
+      display: flex;
+    }
+
+    #topbarWidgets .group[data-layout="header"] .tiles-grid {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0;
+    }
+
+    body.edit-mode #topbarWidgets .group[data-layout="header"] .tiles-grid {
+      padding: 4px 10px 10px;
+    }
+
+    #topbarWidgets .group[data-layout="header"] .tile {
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 0;
+    }
+
+    #topbarWidgets .group[data-layout="header"] .widget-global-search {
+      min-height: 44px;
+    }
+
+    #topbarWidgets .group[data-layout="header"] .tile-body {
+      padding: 6px;
+    }
+
+    #topbarWidgets .group[data-layout="header"] .global-search-meta {
+      display: none;
+    }
+
+    #topbarWidgets .group[data-layout="header"] .resize-handle {
+      display: none !important;
+    }
+
+    @media (max-width: 820px) {
+      #topbar {
+        flex-wrap: wrap;
+      }
+
+      #topbarWidgets {
+        order: 3;
+        flex-basis: 100%;
+      }
+
+      #topbarWidgets .group[data-layout="header"] {
+        width: 100%;
+      }
+    }
+
+    /* ================= Tuile ================= */
+    .tile {
+      position: relative;
+      min-height: 110px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    }
+
+    .tile:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+      border-color: var(--accent);
+    }
+
+    .tile.drag-over {
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .tile-body {
+      padding: 14px;
+      height: 100%;
+    }
+
+    .tile.dragging {
+      opacity: 0.45;
+    }
+
+    /* Contrôles d'édition sur chaque tuile */
+    .tile-edit-bar {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      display: none;
+      gap: 4px;
+      z-index: 3;
+    }
+
+    .tile-edit-bar .icon-btn {
+      width: 26px;
+      height: 26px;
+      font-size: 0.72rem;
+      border-radius: 7px;
+    }
+
+    body.edit-mode .tile-edit-bar {
+      display: flex;
+    }
+
+    body.edit-mode .tile {
+      cursor: grab;
+    }
+
+    /* ================= Widgets ================= */
+    .tile-link {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 100%;
+      min-height: 82px;
+    }
+
+    .tile-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      flex-shrink: 0;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .tile-title {
+      font-weight: 600;
+      font-size: 0.92rem;
+      line-height: 1.25;
+      word-break: break-word;
+
+      text-align: center;
+      width: 100%;
+    }
+
+    .tile-link {
+      align-items: center;
+    }
+
+    /* Tuile lien avec image : l'image remplit la zone au-dessus du texte,
+     proportions conservées (object-fit: contain), texte conservé dessous */
+    .tile-with-image {
+      min-height: 130px;
+    }
+
+    /* Densité homogène définie au niveau de chaque groupe.
+     Le mode normal conserve l'affichage historique. */
+
+    /* ==========================================================
+    VERY COMPACT
+    ========================================================== */
+
+    .group[data-size="very-compact"] .tiles-grid {
+      gap: 6px;
+      padding: 2px 10px 10px;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    }
+
+    .group[data-size="very-compact"] .group-header {
+      padding: 9px 12px;
+    }
+
+    .group[data-size="very-compact"] .tile {
+      min-height: 48px;
+    }
+
+    .group[data-size="very-compact"] .tile-body {
+      padding: 7px 9px;
+    }
+
+    .group[data-size="very-compact"] .tile-link {
+      min-height: 32px;
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group[data-size="very-compact"] .tile-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .group[data-size="very-compact"] .tile-title {
+      font-size: 0.78rem;
+    }
+
+    .group[data-size="very-compact"] .tile-with-image {
+      min-height: 32px;
+    }
+
+    .group[data-size="very-compact"] .tile-image {
+      flex: 0 0 30px;
+      width: 30px;
+      height: 30px;
+    }
+
+    .group[data-size="very-compact"] .widget-image img,
+    .group[data-size="very-compact"] .image-fallback {
+      min-height: 48px;
+    }
+
+    .group[data-size="very-compact"] .widget-clock {
+      min-height: 32px;
+      gap: 1px;
+    }
+
+    .group[data-size="very-compact"] .clock-date {
+      font-size: 0.92rem;
+    }
+
+    .group[data-size="very-compact"] .clock-time,
+    .group[data-size="very-compact"] .clock-week {
+      font-size: 0.65rem;
+    }
+
+    .group[data-size="very-compact"] .widget-search {
+      gap: 4px;
+    }
+
+    .group[data-size="very-compact"] .widget-search input {
+      padding: 6px 8px;
+    }
+
+    .group[data-size="very-compact"] .widget-note,
+    .group[data-size="very-compact"] .agenda-label {
+      font-size: 0.78rem;
+    }
+
+    /* ==========================================================
+   COMPACT
+========================================================== */
+    .group[data-size="compact"] .tiles-grid {
+      gap: 8px;
+      padding: 3px 12px 12px;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+
+    .group[data-size="compact"] .group-header {
+      padding: 5px 6px;
+    }
+
+    .group[data-size="compact"] .tile {
+      height: 130px;
+      min-height: 130px;
+      max-height: 130px;
+    }
+
+    .group[data-size="compact"] .tile-body {
+      height: 100%;
+      padding: 3px 4px;
+      overflow: hidden;
+    }
+
+    .group[data-size="compact"] .tile-link {
+      height: 100%;
+      min-height: 0;
+    }
+
+    .group[data-size="compact"] .widget-clock,
+    .group[data-size="compact"] .widget-search,
+    .group[data-size="compact"] .widget-global-search,
+    .group[data-size="compact"] .widget-note,
+    .group[data-size="compact"] .widget-agenda,
+    .group[data-size="compact"] .widget-image {
+      height: 100%;
+    }
+
+    .group[data-size="compact"] .widget-note {
+      overflow: hidden;
+    }
+
+    .group[data-size="compact"] .widget-agenda {
+      overflow: hidden;
+    }
+
+    .group[data-size="compact"] .widget-search input,
+    .group[data-size="compact"] .global-search-row input {
+      height: 28px;
+    }
+
+    .group[data-size="compact"] .tile-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+
+      /* taille de police volontairement conservée */
+      font-size: 1rem;
+    }
+
+    .group[data-size="compact"] .tile-title {
+      font-size: 0.84rem;
+    }
+
+    .group[data-size="compact"] .tile-with-image {
+      min-height: 26px;
+    }
+
+    .group[data-size="compact"] .widget-image img,
+    .group[data-size="compact"] .image-fallback {
+      min-height: 26px;
+    }
+
+    .group[data-size="compact"] .widget-clock {
+      min-height: 22px;
+    }
+
+    .group[data-size="compact"] .clock-date {
+      font-size: 1.05rem;
+    }
+
+
+    /* ==========================================================
+   NORMAL
+========================================================== */
+    .group[data-size="normal"] .tiles-grid {
+      gap: 8px;
+      padding: 3px 12px 12px;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .group[data-size="normal"] .group-header {
+      padding: 5px 6px;
+    }
+
+    .group[data-size="normal"] .tile {
+      height: 180px;
+      min-height: 180px;
+      max-height: 180px;
+    }
+
+    .group[data-size="normal"] .tile-body {
+      height: 100%;
+      padding: 3px 4px;
+      overflow: hidden;
+    }
+
+    .group[data-size="normal"] .tile-link {
+      height: 100%;
+      min-height: 0;
+    }
+
+    .group[data-size="normal"] .widget-clock,
+    .group[data-size="normal"] .widget-search,
+    .group[data-size="normal"] .widget-global-search,
+    .group[data-size="normal"] .widget-note,
+    .group[data-size="normal"] .widget-agenda,
+    .group[data-size="normal"] .widget-image {
+      height: 100%;
+    }
+
+    .group[data-size="normal"] .widget-note {
+      overflow: hidden;
+    }
+
+    .group[data-size="normal"] .widget-agenda {
+      overflow: hidden;
+    }
+
+    .group[data-size="normal"] .widget-search input,
+    .group[data-size="normal"] .global-search-row input {
+      height: 28px;
+    }
+
+    .group[data-size="normal"] .tile-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+
+      /* taille de police volontairement conservée */
+      font-size: 1rem;
+    }
+
+    .group[data-size="normal"] .tile-title {
+      font-size: 0.84rem;
+    }
+
+    .group[data-size="normal"] .tile-with-image {
+      min-height: 26px;
+    }
+
+    .group[data-size="normal"] .widget-image img,
+    .group[data-size="normal"] .image-fallback {
+      min-height: 26px;
+    }
+
+    .group[data-size="normal"] .widget-clock {
+      min-height: 22px;
+    }
+
+    .group[data-size="normal"] .clock-date {
+      font-size: 1.05rem;
+    }
+
+/*
+    .group[data-size="normal"] .tile {
+      min-height: 118px;
+    }
+
+    .group[data-size="normal"] .tile-body {
+      padding: 15px;
+    }
+
+    .group[data-size="normal"] .tile-link {
+      min-height: 88px;
+      gap: 10px;
+    }
+
+    .group[data-size="normal"] .tile-with-image {
+      min-height: 138px;
+    }
+
+    .group[data-size="normal"] .widget-image img,
+    .group[data-size="normal"] .image-fallback {
+      min-height: 118px;
+    }
+
+    .group[data-size="normal"] .widget-clock {
+      min-height: 88px;
+    }
+*/
+    /* ==========================================================
+   LARGE
+========================================================== */
+
+    .group[data-size="large"] .tiles-grid {
+      gap: 14px;
+    }
+
+    .group[data-size="large"] .tile {
+      min-height: 155px;
+    }
+
+    .group[data-size="large"] .tile-body {
+      padding: 18px;
+    }
+
+    .group[data-size="large"] .tile-link {
+      min-height: 119px;
+      gap: 13px;
+    }
+
+    .group[data-size="large"] .tile-icon {
+      width: 52px;
+      height: 52px;
+      font-size: 1.45rem;
+    }
+
+    .group[data-size="large"] .tile-title {
+      font-size: 1rem;
+    }
+
+    .group[data-size="large"] .tile-with-image {
+      min-height: 175px;
+    }
+
+    .group[data-size="large"] .widget-image img,
+    .group[data-size="large"] .image-fallback {
+      min-height: 155px;
+    }
+
+    .tile-image {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tile-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .widget-clock {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      justify-content: center;
+      height: 100%;
+      min-height: 82px;
+    }
+
+    a.widget-clock:hover .clock-date {
+      color: var(--accent);
+    }
+
+    .clock-week {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .clock-week b {
+      color: var(--accent);
+      font-size: 1.1rem;
+      margin-left: 3px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock-date {
+      font-size: 1.28rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      line-height: 1.15;
+      transition: color 0.2s;
+    }
+
+    .clock-time {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .widget-search {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+    }
+
+    .widget-search form {
+      display: flex;
+      gap: 6px;
+    }
+    .widget-search-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+      overflow: auto;
+    }
+    .search-engine-row {
+      display: grid;
+      grid-template-columns: minmax(82px, 115px) minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+    .search-engine-row .search-engine-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .search-engine-row form {
+      min-width: 0;
+    }
+    .search-engine-manager {
+      display: grid;
+      gap: 14px;
+    }
+    .search-manager-section {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-2);
+    }
+    .search-manager-section h4 {
+      margin: 0 0 10px;
+      font-size: .9rem;
+    }
+    .search-engine-choice {
+      display: grid;
+      grid-template-columns: 28px minmax(100px, 1fr) auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-engine-choice:last-child { border-bottom: 0; }
+    .search-engine-choice .engine-url {
+      color: var(--muted);
+      font-size: .72rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .search-engine-choice .btn { padding: 5px 8px; }
+    .search-engine-choice .btn:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      filter: none;
+    }
+    .search-custom-form {
+      display: grid;
+      grid-template-columns: minmax(120px, .7fr) minmax(180px, 1.3fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+    .search-custom-form .field { margin: 0; }
+    .search-manager-help { color: var(--muted); font-size: .76rem; line-height: 1.4; }
+    @media (max-width: 700px) {
+      .search-engine-row { grid-template-columns: 1fr; gap: 3px; }
+      .search-custom-form { grid-template-columns: 1fr; }
+    }
+
+    .widget-search input {
+      flex: 1;
+      min-width: 0;
+      padding: 9px 11px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .widget-search input:focus {
+      border-color: var(--accent);
+    }
+
+    .widget-search .go {
+      border: none;
+      border-radius: 9px;
+      padding: 0 12px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .widget-global-search {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+      justify-content: center;
+    }
+
+    .global-search-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .global-search-row input {
+      flex: 1;
+      min-width: 0;
+      padding: 9px 11px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .global-search-row input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .global-search-clear {
+      width: 38px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .global-search-clear:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .global-search-meta {
+      color: var(--muted);
+      font-size: 0.75rem;
+      min-height: 1em;
+    }
+
+    .tile.search-hidden,
+    .group.search-hidden {
+      display: none !important;
+    }
+
+    .tile.search-match {
+      border-color: var(--accent);
+    }
+
+    .search-engine-label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .search-engine-label strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .widget-image {
+      display: block;
+      height: 100%;
+      min-height: 82px;
+    }
+
+    .widget-image img {
+      width: 100%;
+      height: 100%;
+      min-height: 110px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-fallback {
+      height: 100%;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      background: var(--accent-soft);
+    }
+
+    .widget-agenda {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .agenda-item {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+    }
+
+    .agenda-date {
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border-radius: 6px;
+      padding: 3px 7px;
+      min-width: 52px;
+      text-align: center;
+    }
+
+    .agenda-label {
+      font-size: 0.88rem;
+      line-height: 1.3;
+    }
+
+    .agenda-meta {
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .agenda-empty {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-style: italic;
+    }
+
+    .widget-note-title {
+      margin-bottom: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .widget-note {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ============ Redimensionnement / logos / zones de dépôt ============ */
+    .resize-handle {
+      position: absolute;
+      right: 5px;
+      bottom: 5px;
+      width: 22px;
+      height: 22px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      cursor: nwse-resize;
+      user-select: none;
+      border-radius: 7px;
+      background: var(--accent-soft);
+      z-index: 3;
+    }
+
+    .resize-handle:hover {
+      color: var(--accent);
+    }
+
+    body.edit-mode .resize-handle {
+      display: flex;
+    }
+
+    .group-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .tiles-grid.drop-zone {
+      box-shadow: inset 0 0 0 2px var(--accent);
+      border-radius: var(--radius-sm);
+    }
+
+    .grid-empty {
+      display: none;
+      grid-column: 1 / -1;
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-style: italic;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    body.edit-mode .grid-empty {
+      display: block;
+    }
+
+    .image-input {
+      display: flex;
+      gap: 6px;
+    }
+
+    .image-input input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .image-preview {
+      margin-top: 8px;
+    }
+
+    .image-preview img {
+      max-height: 52px;
+      max-width: 110px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-2);
+    }
+
+    /* ================= Barre d'ajout de groupe ================= */
+    #addGroupBar {
+      display: none;
+      padding: 0 clamp(16px, 4vw, 48px) 60px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    body.edit-mode #addGroupBar {
+      display: block;
+    }
+
+    #btnAddGroup {
+      width: 100%;
+      padding: 14px;
+      font-size: 0.95rem;
+    }
+
+    /* Contrôles visibles uniquement en mode édition */
+    .edit-only {
+      display: none;
+    }
+
+    body.edit-mode .edit-only {
+      display: inline-flex;
+    }
+
+    body.edit-mode .group-title {
+      cursor: pointer;
+    }
+
+    /* ================= Modale ================= */
+    #modalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 16, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      backdrop-filter: blur(3px);
+    }
+
+    #modalOverlay.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(480px, calc(100vw - 32px));
+      max-height: 85vh;
+      overflow: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .modal h3 {
+      margin: 0 0 16px;
+      font-size: 1.05rem;
+    }
+
+    .modal .field {
+      margin-bottom: 14px;
+    }
+
+    .modal label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .modal input[type="text"],
+    .modal input[type="url"],
+    .modal textarea,
+    .modal select {
+      width: 100%;
+      padding: 9px 11px;
+      border-radius: 9px;
+      font-family: inherit;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .modal textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .modal input:focus,
+    .modal textarea:focus,
+    .modal select:focus {
+      border-color: var(--accent);
+    }
+
+    .modal .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal .checkbox-row label {
+      margin: 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      padding: 9px 18px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .type-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .type-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .type-card .t-ico {
+      font-size: 1.5rem;
+    }
+
+    .type-card .t-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* ================= Import de favoris ================= */
+    .bm-help {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    .bm-help p {
+      margin: 0 0 8px;
+    }
+
+    .bm-help kbd {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      padding: 1px 6px;
+      font-size: 0.9em;
+      font-family: inherit;
+    }
+
+    .bm-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bm-tree {
+      max-height: 46vh;
+      overflow: auto;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface-2);
+    }
+
+    .bm-item,
+    .bm-folder-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      border-radius: 6px;
+    }
+
+    .bm-item:hover,
+    .bm-folder-row:hover {
+      background: var(--surface);
+    }
+
+    .bm-folder-row {
+      font-weight: 600;
+    }
+
+    .bm-toggle {
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .bm-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bm-url {
+      color: var(--muted);
+      font-size: 0.75rem;
+      max-width: 42%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bm-children {
+      margin-left: 16px;
+      padding-left: 6px;
+      border-left: 1px dashed var(--border);
+    }
+
+    .bm-count {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+
+    .bm-bookmarklet {
+      display: block;
+      text-align: center;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px dashed var(--accent);
+      border-radius: 10px;
+      color: var(--accent);
+      font-weight: 600;
+      background: var(--accent-soft);
+      cursor: grab;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.75rem;
+      padding-bottom: 24px;
+    }
+
+    /* ==========================================================
+       TOOLTIP PERSONNALISABLE DES TUILES
+    ========================================================== */
+    #tileTooltip {
+      position: fixed;
+      display: none;
+      z-index: 3000;
+      max-width: min(360px, calc(100vw - 24px));
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      font-size: .78rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(3px);
+      transition: opacity .12s ease, transform .12s ease;
+    }
+    #tileTooltip.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==========================================================
+   NOTE EDITOR
+========================================================== */
+
+    .note-editor-overlay {
+      position: fixed;
+      inset: 0;
+
+      display: none;
+      align-items: center;
+      justify-content: center;
+
+      background: rgba(0, 0, 0, 0.45);
+
+      z-index: 2000;
+
+      backdrop-filter: blur(4px);
+    }
+
+    .note-editor-overlay.open {
+      display: flex;
+    }
+
+    .note-editor-modal {
+
+      width: 75vw;
+      height: 80vh;
+
+      max-width: 1600px;
+      min-width: 700px;
+
+      background: var(--surface);
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+
+      box-shadow: var(--shadow);
+
+      display: flex;
+      flex-direction: column;
+
+      overflow: hidden;
+    }
+
+    .note-editor-header {
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 18px 22px;
+
+      border-bottom: 1px solid var(--border);
+
+      background: var(--surface-2);
+    }
+
+    .note-editor-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .note-editor-body {
+
+      flex: 1;
+
+      display: flex;
+
+      padding: 0;
+    }
+
+    .note-editor-body textarea {
+
+      flex: 1;
+
+      resize: none;
+
+      border: none;
+      outline: none;
+
+      background: transparent;
+
+      color: var(--text);
+
+      font-family: inherit;
+
+      font-size: 0.95rem;
+      line-height: 1.6;
+
+      padding: 24px;
+
+      white-space: pre-wrap;
+    }
+
+    .note-editor-footer {
+
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+
+      padding: 16px 22px;
+
+      border-top: 1px solid var(--border);
+
+      background: var(--surface-2);
+    }
+
+    /* Portable */
+
+    @media (max-width: 1000px) {
+
+      .note-editor-modal {
+        width: 95vw;
+        height: 90vh;
+        min-width: auto;
+      }
+    }
+
+
+    /* ==========================================================
+       CALENDRIER DE LA TOPBAR
+    ========================================================== */
+    #pageDate {
+      cursor: pointer;
+      border-radius: 7px;
+      padding: 2px 5px;
+      margin-left: -5px;
+    }
+
+    #pageDate:hover,
+    #pageDate:focus-visible {
+      color: var(--accent);
+      background: var(--accent-soft);
+      outline: none;
+    }
+
+    .calendar-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(8, 10, 16, .58);
+      backdrop-filter: blur(4px);
+      z-index: 2100;
+    }
+
+    .calendar-overlay.open {
+      display: flex;
+    }
+
+    .calendar-modal {
+      width: min(1180px, 96vw);
+      height: min(860px, 92vh);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .calendar-header h2 {
+      margin: 0;
+      flex: 1;
+      text-align: center;
+      font-size: 1.15rem;
+      text-transform: capitalize;
+    }
+
+    .calendar-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .calendar-view-switch {
+      display: inline-flex;
+      gap: 4px;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .calendar-view-switch .btn {
+      padding: 6px 10px;
+      border: 0;
+      background: transparent;
+    }
+
+    .calendar-view-switch .btn.active {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .calendar-week-scroll {
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .calendar-month-nav {
+      display: inline-flex;
+      gap: 5px;
+    }
+
+    .calendar-event.personal {
+      padding-right: 22px;
+      position: relative;
+      cursor: default;
+    }
+
+    .calendar-event-delete {
+      position: absolute;
+      top: 1px;
+      right: 2px;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: inherit;
+      line-height: 1;
+      opacity: .65;
+    }
+
+    .calendar-event-delete:hover {
+      opacity: 1;
+      color: #e05252;
+      background: rgba(224, 82, 82, .14);
+    }
+
+    .calendar-event-form {
+      display: none;
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+
+    .calendar-event-form.open {
+      display: block;
+    }
+
+    .calendar-event-form input,
+    .calendar-event-form textarea {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 8px 9px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-2);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .calendar-event-form textarea {
+      min-height: 64px;
+      resize: vertical;
+    }
+
+    .calendar-event-form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+    }
+
+    .calendar-source-preset {
+      display: flex;
+      gap: 6px;
+    }
+
+    .calendar-source-preset select {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .calendar-grid.week-view .calendar-day,
+    .calendar-grid.week-view .calendar-week-number {
+      min-height: 430px;
+    }
+
+    .calendar-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 285px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .calendar-main {
+      min-width: 0;
+      padding: 14px;
+      overflow: auto;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: 48px repeat(7, minmax(82px, 1fr));
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .calendar-week-head,
+    .calendar-day-head {
+      padding: 8px 4px;
+      text-align: center;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 700;
+      background: var(--surface-2);
+      border-right: 1px solid var(--border);
+    }
+
+    .calendar-day-head:last-child {
+      border-right: 0;
+    }
+
+    .calendar-week-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 104px;
+      color: var(--accent);
+      font-size: .75rem;
+      font-weight: 700;
+      background: var(--accent-soft);
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    .calendar-day {
+      min-height: 104px;
+      padding: 6px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .calendar-day:nth-child(8n) {
+      border-right: 0;
+    }
+
+    .calendar-day.outside {
+      opacity: .42;
+      background: var(--surface-2);
+    }
+
+    .calendar-day.today {
+      box-shadow: inset 0 0 0 2px var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .calendar-day-number {
+      display: inline-flex;
+      width: 25px;
+      height: 25px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+
+    .calendar-day.today .calendar-day-number {
+      color: white;
+      background: var(--accent);
+    }
+
+    .calendar-events {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-top: 4px;
+    }
+
+    .calendar-event {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 3px 5px;
+      border-radius: 5px;
+      font-size: .68rem;
+      background: var(--accent-soft);
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+    }
+
+    .calendar-event.holiday {
+      border-left-color: #e05252;
+      background: color-mix(in srgb, #e05252 16%, transparent);
+    }
+
+    .calendar-event.school {
+      border-left-color: #e49b28;
+      background: color-mix(in srgb, #e49b28 17%, transparent);
+    }
+
+    .calendar-event.personal {
+      border-left-color: #53a66f;
+      background: color-mix(in srgb, #53a66f 17%, transparent);
+    }
+
+    .calendar-sidebar {
+      padding: 16px;
+      overflow: auto;
+      border-left: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .calendar-sidebar h3 {
+      margin: 0 0 12px;
+      font-size: .95rem;
+    }
+
+    .calendar-field {
+      margin-bottom: 14px;
+    }
+
+    .calendar-field label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 700;
+    }
+
+    .calendar-field input[type="url"],
+    .calendar-field select {
+      width: 100%;
+      padding: 8px 9px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .calendar-check {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 8px 0;
+      font-size: .82rem;
+    }
+
+    .calendar-source-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .calendar-status {
+      min-height: 1.2em;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .74rem;
+      line-height: 1.35;
+    }
+
+    .calendar-legend {
+      display: grid;
+      gap: 7px;
+      margin-top: 16px;
+      font-size: .76rem;
+    }
+
+    .calendar-legend span::before {
+      content: "";
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .calendar-legend .holiday::before {
+      background: #e05252;
+    }
+
+    .calendar-legend .school::before {
+      background: #e49b28;
+    }
+
+    .calendar-legend .personal::before {
+      background: #53a66f;
+    }
+
+    @media (max-width: 850px) {
+      .calendar-modal {
+        width: 98vw;
+        height: 95vh;
+      }
+
+      .calendar-content {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-sidebar {
+        border-left: 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .calendar-grid {
+        grid-template-columns: 37px repeat(7, minmax(68px, 1fr));
+      }
+
+      .calendar-day,
+      .calendar-week-number {
+        min-height: 86px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header id="topbar">
+    <div class="brand">
+
+      <span id="titleLogo" class="title-logo"></span>
+
+      <div class="brand-content">
+
+        <div class="brand-row">
+          <h1 id="pageTitle"></h1>
+
+          <button id="btnEditTitle" class="icon-btn edit-only"
+            style="width:28px;height:28px;font-size:0.7rem;border-radius:8px" title="Modifier le titre">
+            ✏️
+          </button>
+        </div>
+
+        <div class="subtitle" id="pageDate"></div>
+
+      </div>
+
+    </div>
+
+    <div id="topbarWidgets" aria-label="Widgets de la barre supérieure"></div>
+    <div class="top-actions">
+      <button id="btnBookmarks" class="icon-btn edit-only"
+        title="Importer des favoris du navigateur (fichier d'export HTML)">🔖</button>
+      <button id="btnBookmarklet" class="icon-btn edit-only" title="Ajouter la page courante (bookmarklet)">📌</button>
+      <button id="btnImport" class="icon-btn edit-only" title="Importer une sauvegarde (JSON)">📥</button>
+      <button id="btnExport" class="icon-btn edit-only" title="Exporter la configuration (JSON)">📤</button>
+      <button id="btnEdit" class="icon-btn" title="Mode édition">✏️</button>
+      <button id="btnTheme" class="icon-btn" title="Basculer le thème">🌙</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" hidden />
+  </header>
+
+  <main id="groups"></main>
+
+  <div id="addGroupBar">
+    <button id="btnAddGroup" class="text-btn">＋ Nouvel ensemble de tuiles</button>
+  </div>
+
+  <footer>Vos modifications sont enregistrées automatiquement dans ce navigateur.</footer>
+
+  <div id="modalOverlay">
+    <div class="modal" id="modalBox"></div>
+  </div>
+
+  <!-- =========================================================
+     Editeur pleine page des notes
+========================================================= -->
+
+  <div id="noteEditorOverlay" class="note-editor-overlay">
+
+    <div class="note-editor-modal">
+
+      <div class="note-editor-header">
+        <div style="flex:1;min-width:0;margin-right:14px">
+          <label for="noteEditorTitleInput"
+            style="display:block;color:var(--muted);font-size:.75rem;font-weight:600;margin-bottom:5px">Titre de la
+            note</label>
+          <input id="noteEditorTitleInput" type="text" placeholder="Titre de la note"
+            style="width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-weight:700;outline:none">
+        </div>
+
+        <button id="btnCloseNoteEditor" class="icon-btn" title="Fermer">
+          ✕
+        </button>
+      </div>
+
+      <div class="note-editor-body">
+
+        <textarea id="noteEditorText" spellcheck="true" placeholder="Saisissez votre note...">
+            </textarea>
+
+      </div>
+
+      <div class="note-editor-footer">
+
+        <button id="btnCancelNoteEditor" class="btn">
+          Annuler
+        </button>
+
+        <button id="btnSaveNoteEditor" class="btn primary">
+          Enregistrer
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- Calendrier ouvert depuis la date de la topbar -->
+  <div id="calendarOverlay" class="calendar-overlay" aria-hidden="true">
+    <section class="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendarMonthTitle">
+      <header class="calendar-header">
+        <div class="calendar-toolbar">
+          <div class="calendar-month-nav" aria-label="Navigation principale">
+            <button id="calendarPrev" class="icon-btn" title="Période précédente">‹</button>
+            <button id="calendarNext" class="icon-btn" title="Période suivante">›</button>
+          </div>
+          <button id="calendarToday" class="btn" type="button">Aujourd’hui</button>
+          <div class="calendar-week-scroll" title="Faire défiler d’une semaine en vue mois">
+            <button id="calendarWeekUp" class="btn" type="button">↑ 1 sem.</button>
+            <button id="calendarWeekDown" class="btn" type="button">↓ 1 sem.</button>
+          </div>
+          <div class="calendar-view-switch" role="group" aria-label="Mode d’affichage">
+            <button id="calendarMonthView" class="btn active" type="button">Mois</button>
+            <button id="calendarWeekView" class="btn" type="button">Semaine</button>
+          </div>
+        </div>
+        <h2 id="calendarMonthTitle"></h2>
+        <div class="calendar-toolbar">
+          <button id="calendarClose" class="icon-btn" title="Fermer">✕</button>
+        </div>
+      </header>
+      <div class="calendar-content">
+        <div class="calendar-main">
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </div>
+        <aside class="calendar-sidebar">
+          <h3>Sources du calendrier</h3>
+          <div class="calendar-field">
+            <label for="calendarSourcePreset">Sources officielles proposées</label>
+            <div class="calendar-source-preset">
+              <select id="calendarSourcePreset">
+                <option value="holidays">Jours fériés France métropolitaine, API officielle</option>
+                <option value="school">Vacances scolaires, API Éducation nationale</option>
+                <option value="school-zone-a">Vacances scolaires, zone A</option>
+                <option value="school-zone-b">Vacances scolaires, zone B</option>
+                <option value="school-zone-c" selected>Vacances scolaires, zone C</option>
+                <option value="custom">Calendrier ICS/iCal personnalisé</option>
+              </select>
+              <button id="calendarLoadPreset" class="btn" type="button">Charger</button>
+            </div>
+          </div>
+          <label class="calendar-check"><input id="calendarShowHolidays" type="checkbox" checked> Jours fériés
+            officiels</label>
+          <label class="calendar-check"><input id="calendarShowSchool" type="checkbox" checked> Vacances
+            scolaires</label>
+          <div class="calendar-field">
+            <label for="calendarSchoolZone">Zone scolaire</label>
+            <select id="calendarSchoolZone">
+              <option value="Zone A">Zone A</option>
+              <option value="Zone B">Zone B</option>
+              <option value="Zone C" selected>Zone C</option>
+              <option value="Corse">Corse</option>
+            </select>
+          </div>
+          <div class="calendar-field">
+            <label for="calendarIcsUrl">Adresse d’un calendrier ICS / iCal personnel</label>
+            <input id="calendarIcsUrl" type="url" placeholder="https://…/calendrier.ics">
+          </div>
+          <div class="calendar-source-actions">
+            <button id="calendarLoadUrl" class="btn" type="button">Charger l’URL</button>
+            <button id="calendarLoadFile" class="btn" type="button">Importer un fichier</button>
+            <button id="calendarClearPersonal" class="btn" type="button">Effacer les événements</button>
+          </div>
+          <input id="calendarIcsFile" type="file" accept=".ics,.ical,text/calendar" hidden>
+          <div class="calendar-source-actions" style="margin-top:12px">
+            <button id="calendarAddEvent" class="btn primary" type="button">＋ Ajouter un événement</button>
+          </div>
+          <form id="calendarEventForm" class="calendar-event-form">
+            <div class="calendar-field"><label for="calendarEventTitle">Titre</label><input id="calendarEventTitle"
+                type="text" required placeholder="Nom de l’événement"></div>
+            <div class="calendar-field"><label for="calendarEventStart">Début</label><input id="calendarEventStart"
+                type="datetime-local" required></div>
+            <div class="calendar-field"><label for="calendarEventEnd">Fin</label><input id="calendarEventEnd"
+                type="datetime-local"></div>
+            <div class="calendar-field"><label for="calendarEventDescription">Description, facultative</label><textarea
+                id="calendarEventDescription"></textarea></div>
+            <div class="calendar-event-form-actions"><button id="calendarCancelEvent" class="btn"
+                type="button">Annuler</button><button class="btn primary" type="submit">Ajouter</button></div>
+          </form>
+          <div id="calendarStatus" class="calendar-status" aria-live="polite"></div>
+          <div class="calendar-legend">
+            <span class="holiday">Jour férié</span><span class="school">Vacances scolaires</span><span
+              class="personal">Événement iCal personnel</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <div id="tileTooltip" role="tooltip" aria-hidden="true"></div>
+  <script>
+    "use strict";
+
+    /* ================================================================
+       ARCHITECTURE
+       ----------------------------------------------------------------
+       1. STATE      : données de la page (thème, titre, groupes, tuiles)
+                       sérialisées en JSON dans localStorage.
+       2. WIDGETS    : registre des types de tuiles. Chaque type décrit
+                       son nom, ses champs de configuration et son rendu.
+                       => Pour ajouter un nouveau type de widget, il
+                          suffit d'ajouter une entrée dans `Widgets`.
+       3. RENDER     : fonctions de rendu déclaratives (render() global,
+                       renderGroups, renderGroup, renderTile).
+       4. EDITOR     : mode édition, modales, formulaires (générés à
+                       partir de la déclaration des champs des widgets).
+       5. DRAG & DROP: réordonnancement des tuiles et des groupes.
+       6. FAVORIS   : import du fichier d'export HTML des favoris,
+                      ajout rapide (Ctrl+D) et bookmarklet.
+       ================================================================ */
+
+    /* ---------------- Utilitaires ---------------- */
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const uid = () => (crypto.randomUUID ? crypto.randomUUID() : "id-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+
+    let tileTooltipTimer = null;
+    function hideTileTooltip() {
+      clearTimeout(tileTooltipTimer);
+      const tip = $("#tileTooltip");
+      tip.classList.remove("visible");
+      tip.setAttribute("aria-hidden", "true");
+    }
+    function positionTileTooltip(ev) {
+      const tip = $("#tileTooltip");
+      if (!tip.classList.contains("visible")) return;
+      const margin = 12, offset = 14;
+      const rect = tip.getBoundingClientRect();
+      let left = ev.clientX + offset;
+      let top = ev.clientY + offset;
+      if (left + rect.width + margin > window.innerWidth) left = ev.clientX - rect.width - offset;
+      if (top + rect.height + margin > window.innerHeight) top = ev.clientY - rect.height - offset;
+      tip.style.left = Math.max(margin, left) + "px";
+      tip.style.top = Math.max(margin, top) + "px";
+    }
+    function showTileTooltip(text, ev) {
+      const message = String(text || "").trim();
+      if (!message || document.body.classList.contains("edit-mode")) return;
+      clearTimeout(tileTooltipTimer);
+      tileTooltipTimer = setTimeout(() => {
+        const tip = $("#tileTooltip");
+        tip.textContent = message;
+        tip.classList.add("visible");
+        tip.setAttribute("aria-hidden", "false");
+        positionTileTooltip(ev);
+      }, 280);
+    }
+
+    /* Découpe un collage du type « Titre | URL »
+       (ex. : presse-papiers du bookmarklet : "Google | https://www.google.com/") */
+    function splitTitleUrl(raw) {
+      const s = (raw || "").trim();
+      if (!s.includes("|")) return null;
+      const parts = s.split("|").map((p) => p.trim()).filter(Boolean);
+      if (parts.length < 2) return null;
+      const looksLikeUrl = (p) => /^(https?:\/\/|www\.)\S+$/i.test(p) || /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(p);
+      const i = parts.findIndex(looksLikeUrl);
+      if (i === -1) return null;
+      const url = parts[i].startsWith("http") ? parts[i] : "https://" + parts[i];
+      const title = parts.filter((_, j) => j !== i).join(" | ");
+      return { title, url };
+    }
+
+    /* ================================================================
+       1. STATE
+       ================================================================ */
+    const STORAGE_KEY = "startpage.v1";
+
+    const defaultState = () => ({
+      theme: "dark",
+      title: "Ma Startpage",
+      showDate: true,
+      showWeek: false,
+      groups: [
+        {
+          id: uid(),
+          title: "⭐ Raccourcis",
+          collapsed: false,
+          tiles: [
+            { id: uid(), type: "link", config: { title: "Gmail", url: "https://mail.google.com", icon: "✉️" } },
+            { id: uid(), type: "link", config: { title: "GitHub", url: "https://github.com", icon: "🐙" } },
+            { id: uid(), type: "link", config: { title: "Le Chat", url: "https://chat.mistral.ai", icon: "🤖" } },
+            { id: uid(), type: "link", config: { title: "Wikipédia", url: "https://fr.wikipedia.org", icon: "📚" } },
+          ],
+        },
+        {
+          id: uid(),
+          title: "🧰 Outils",
+          collapsed: false,
+          tiles: [
+            { id: uid(), type: "clock", config: { seconds: false } },
+            { id: uid(), type: "search", config: { engine: "duckduckgo", newTab: true } },
+          ],
+        },
+        {
+          id: uid(),
+          title: "📅 Perso",
+          collapsed: true,
+          tiles: [
+            {
+              id: uid(), type: "agenda",
+              config: { events: "2026-10-12 | 14:00 | Rendez-vous dentiste\n2026-10-15 | 09:00 | Réunion d'équipe\n2026-10-24 | | Anniversaire de Léa" },
+            },
+            { id: uid(), type: "note", config: { text: "Bienvenue ! Passe en mode édition (✏️) pour personnaliser cette page." } },
+          ],
+        },
+      ],
+    });
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const s = JSON.parse(raw);
+        if (!s || !Array.isArray(s.groups)) return null;
+        return s;
+      } catch { return null; }
+    }
+    function saveState() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* stockage indisponible : on continue en mémoire */ }
+    }
+
+    let state = loadState() || defaultState();
+
+    let currentNoteEditor = null;
+
+    function openNoteEditor(tile, title = "Modifier la note") {
+
+      currentNoteEditor = tile;
+
+      $("#noteEditorTitleInput").value = tile.config?.title || "";
+
+      $("#noteEditorText").value =
+        tile.config?.text || "";
+
+      $("#noteEditorOverlay")
+        .classList
+        .add("open");
+
+      setTimeout(() => {
+        $("#noteEditorText").focus();
+      }, 50);
+    }
+
+    function closeNoteEditor() {
+
+      currentNoteEditor = null;
+
+      $("#noteEditorOverlay")
+        .classList
+        .remove("open");
+    }
+
+    function saveNoteEditor() {
+
+      if (!currentNoteEditor)
+        return;
+
+      currentNoteEditor.config.title = $("#noteEditorTitleInput").value.trim();
+      currentNoteEditor.config.text =
+        $("#noteEditorText").value;
+
+      saveState();
+
+      render();
+
+      closeNoteEditor();
+    }
+
+    /* ================================================================
+       2. WIDGETS — Registre des types de tuiles
+       ----------------------------------------------------------------
+       Chaque type déclare :
+         name        : libellé affiché dans le sélecteur
+         icon        : emoji du sélecteur
+         defaults()  : configuration initiale d'une nouvelle tuile
+         fields[]    : champs du formulaire d'édition
+                       (types : text, url, textarea, select, checkbox)
+         render(body, cfg, ctx) : construit le contenu de la tuile.
+                       ctx.tick(fn, ms) enregistre un rafraîchissement
+                       périodique (nettoyé automatiquement au re-rendu).
+       ================================================================ */
+
+    /* Moteurs de recherche disponibles pour le widget "search" */
+    const DEFAULT_SEARCH_ENGINES = [
+      { id: "duckduckgo", name: "DuckDuckGo", pattern: "https://duckduckgo.com/?q={query}", builtin: true },
+      { id: "google", name: "Google", pattern: "https://www.google.com/search?q={query}", builtin: true },
+      { id: "bing", name: "Bing", pattern: "https://www.bing.com/search?q={query}", builtin: true },
+      { id: "ecosia", name: "Ecosia", pattern: "https://www.ecosia.org/search?q={query}", builtin: true },
+      { id: "wikipedia", name: "Wikipédia", pattern: "https://fr.wikipedia.org/w/index.php?search={query}", builtin: true },
+      { id: "youtube", name: "YouTube", pattern: "https://www.youtube.com/results?search_query={query}", builtin: true },
+    ];
+
+    function ensureSearchEngineCatalog() {
+      if (!Array.isArray(state.searchEngines)) state.searchEngines = [];
+      const custom = state.searchEngines.filter(e => e && !e.builtin && e.id && e.name && e.pattern);
+      state.searchEngines = [...DEFAULT_SEARCH_ENGINES.map(e => ({ ...e })), ...custom];
+    }
+    function getSearchEngines() {
+      ensureSearchEngineCatalog();
+      return state.searchEngines;
+    }
+    function normalizeSearchPattern(raw) {
+      const value = String(raw || "").trim();
+      if (!value) return "";
+      if (value.includes("{query}")) return value;
+      const separator = value.includes("?") ? "&" : "?";
+      return `${value}${separator}q={query}`;
+    }
+    function buildSearchUrl(pattern, query) {
+      const encoded = encodeURIComponent(query);
+      return String(pattern || "").includes("{query}")
+        ? String(pattern).replaceAll("{query}", encoded)
+        : String(pattern || "") + encoded;
+    }
+    function removeSearchEngineEverywhere(engineId) {
+      state.groups.forEach(group => group.tiles.forEach(tile => {
+        if (tile.type !== "search") return;
+        if (Array.isArray(tile.config?.engines)) tile.config.engines = tile.config.engines.filter(id => id !== engineId);
+        if (tile.config?.engine === engineId) delete tile.config.engine;
+      }));
+    }
+
+    /* Numéro de semaine ISO 8601 (utilisé par le widget horloge) */
+    function isoWeek(d) {
+      const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const day = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+      return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+    }
+
+    /* Recherche globale : normalisation sans accents et index textuel d'une tuile. */
+    const normalizeSearch = (value) => String(value ?? "")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+    function tileSearchText(tile, group) {
+      const cfg = tile?.config || {};
+      return normalizeSearch([
+        group?.title, Widgets[tile?.type]?.name, tile?.type,
+        ...Object.values(cfg).filter(v => typeof v === "string" || typeof v === "number")
+      ].join(" "));
+    }
+
+    function applyGlobalTileSearch(rawQuery, metaEl = null) {
+      const query = normalizeSearch(rawQuery);
+      let matches = 0, searchable = 0;
+      document.querySelectorAll(".group").forEach((groupEl) => {
+        const gi = Number(groupEl.dataset.gi);
+        const group = state.groups[gi];
+        let groupMatches = 0;
+        groupEl.querySelectorAll(".tile").forEach((tileEl) => {
+          const ti = Number(tileEl.dataset.ti);
+          const tile = group?.tiles?.[ti];
+          const isSearchWidget = tile?.type === "globalSearch";
+          tileEl.classList.remove("search-hidden", "search-match");
+          if (isSearchWidget) return;
+          searchable++;
+          const ok = !query || tileSearchText(tile, group).includes(query);
+          tileEl.classList.toggle("search-hidden", !ok);
+          tileEl.classList.toggle("search-match", Boolean(query && ok));
+          if (ok) { matches++; groupMatches++; }
+        });
+        const ownsSearchWidget = group?.tiles?.some(t => t.type === "globalSearch");
+        groupEl.classList.toggle("search-hidden", Boolean(query && groupMatches === 0 && !ownsSearchWidget));
+      });
+      if (metaEl) metaEl.textContent = query
+        ? `${matches} tuile${matches > 1 ? "s" : ""} trouvée${matches > 1 ? "s" : ""}`
+        : `Recherche dans ${searchable} tuile${searchable > 1 ? "s" : ""}`;
+    }
+
+    let activeGlobalSearch = "";
+
+    const Widgets = {
+      link: {
+        name: "Lien",
+        icon: "🔗",
+        defaults: () => ({ title: "Nouveau lien", url: "https://example.com", icon: "🌐", image: "", favicon: false, newTab: true }),
+        fields: [
+          { key: "title", label: "Titre", type: "text" },
+          { key: "url", label: "URL (accepte aussi « Titre | URL »)", type: "url" },
+          { key: "newTab", label: "Ouvrir dans une nouvelle fenêtre", type: "checkbox" },
+          { key: "favicon", label: "Utiliser la favicon du site lié comme image", type: "checkbox" },
+          { key: "image", label: "Image (PNG / SVG / JPG) — remplace l'emoji", type: "image" },
+          { key: "icon", label: "Emoji / icône (si pas d'image)", type: "text" },
+        ],
+        render(body, cfg) {
+          const a = document.createElement("a");
+          a.href = cfg.url || "#";
+          /* Ouverture : nouvelle fenêtre par défaut (désactivable par tuile) */
+          if (cfg.newTab !== false) { a.target = "_blank"; a.rel = "noopener"; }
+          /* Source de l'image, par ordre de priorité :
+             favicon du site lié > image personnalisée > emoji.
+             (Le service de favicons est remplaçable en une ligne ci-dessous.) */
+          let favUrl = null;
+          if (cfg.favicon && cfg.url) {
+            try {
+              const host = new URL(cfg.url).hostname;
+              favUrl = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(host) + "&sz=64";
+            } catch { /* URL invalide : la favicon sera ignorée */ }
+          }
+          const src = favUrl || cfg.image;
+          a.className = "tile-link" + (src ? " tile-with-image" : "");
+          const title = document.createElement("span");
+          title.className = "tile-title";
+          title.textContent = cfg.title || "Lien";
+          const makeIcon = () => {
+            const ic = document.createElement("span");
+            ic.className = "tile-icon";
+            ic.textContent = cfg.icon || "🌐";
+            return ic;
+          };
+          if (src) {
+            const wrap = document.createElement("span");
+            wrap.className = "tile-image";
+            const img = document.createElement("img");
+            img.src = src;
+            img.alt = cfg.title || "";
+            img.addEventListener("error", () => {
+              if (favUrl && cfg.image) {
+                /* Favicon indisponible : bascule sur l'image personnalisée */
+                favUrl = null;
+                img.src = cfg.image;
+              } else {
+                /* Aucune image disponible : retour à l'emoji */
+                wrap.remove();
+                a.classList.remove("tile-with-image");
+                a.prepend(makeIcon());
+              }
+            });
+            wrap.appendChild(img);
+            a.append(wrap, title);
+          } else {
+            a.append(makeIcon(), title);
+          }
+          body.appendChild(a);
+        },
+      },
+
+      clock: {
+        name: "Horloge",
+        icon: "🕒",
+        defaults: () => ({ showTime: true, seconds: false, link: "" }),
+        fields: [
+          { key: "link", label: "Lien ouvert au clic (optionnel)", type: "url" },
+          { key: "showTime", label: "Afficher l'heure (en petit)", type: "checkbox" },
+          { key: "seconds", label: "Afficher les secondes", type: "checkbox" },
+        ],
+        render(body, cfg, ctx) {
+          const showTime = cfg.showTime !== false;
+          body.innerHTML = `
+        <a class="widget-clock" ${cfg.link ? `href="${esc(cfg.link)}" target="_blank" rel="noopener"` : ""}>
+          <div class="clock-week">Semaine <b>—</b></div>
+          <div class="clock-date">—</div>
+          ${showTime ? `<div class="clock-time">--:--</div>` : ""}
+        </a>`;
+          const wEl = $(".clock-week b", body), dEl = $(".clock-date", body), tEl = $(".clock-time", body);
+          ctx.tick(() => {
+            const now = new Date();
+            wEl.textContent = isoWeek(now);
+            dEl.textContent = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+            if (tEl) tEl.textContent = now.toLocaleTimeString("fr-FR", {
+              hour: "2-digit", minute: "2-digit", ...(cfg.seconds ? { second: "2-digit" } : {}),
+            });
+          }, 1000);
+        },
+      },
+
+      globalSearch: {
+        name: "Recherche globale des tuiles",
+        icon: "⌕",
+        defaults: () => ({ placeholder: "Rechercher dans toutes les tuiles…" }),
+        fields: [
+          { key: "placeholder", label: "Texte indicatif", type: "text" },
+        ],
+        render(body, cfg) {
+          body.innerHTML = `
+          <div class="widget-global-search">
+            <div class="global-search-row">
+              <input type="search" placeholder="${esc(cfg.placeholder || "Rechercher dans toutes les tuiles…")}" aria-label="Recherche globale des tuiles" />
+              <button type="button" class="global-search-clear" title="Effacer la recherche">×</button>
+            </div>
+            <div class="global-search-meta" aria-live="polite"></div>
+          </div>`;
+          const input = $("input", body), meta = $(".global-search-meta", body);
+          input.value = activeGlobalSearch;
+          const run = () => { activeGlobalSearch = input.value; applyGlobalTileSearch(activeGlobalSearch, meta); };
+          input.addEventListener("input", run);
+          $(".global-search-clear", body).addEventListener("click", () => {
+            input.value = ""; run(); input.focus();
+          });
+          setTimeout(run, 0);
+        },
+      },
+      search: {
+        name: "Recherche",
+        icon: "🔍",
+        defaults: () => ({ engines: ["duckduckgo"], newTab: true }),
+        fields: [],
+        render(body, cfg) {
+          const catalog = getSearchEngines();
+          const legacyEngine = cfg.engine || "duckduckgo";
+          const selectedIds = Array.isArray(cfg.engines) && cfg.engines.length ? cfg.engines : [legacyEngine];
+          const selected = selectedIds.map(id => catalog.find(e => e.id === id)).filter(Boolean);
+          body.innerHTML = `<div class="widget-search widget-search-list"></div>`;
+          const list = $(".widget-search-list", body);
+          if (!selected.length) {
+            list.innerHTML = `<div class="agenda-empty">Aucun moteur sélectionné. Passez en mode édition pour configurer cette tuile.</div>`;
+            return;
+          }
+          selected.forEach(engine => {
+            const row = document.createElement("div");
+            row.className = "search-engine-row";
+            row.innerHTML = `
+              <div class="search-engine-label" title="${esc(engine.name)}">${esc(engine.name)}</div>
+              <form>
+                <input type="text" placeholder="Rechercher…" aria-label="Rechercher avec ${esc(engine.name)}" />
+                <button type="submit" class="go" title="Rechercher avec ${esc(engine.name)}">→</button>
+              </form>`;
+            const input = $("input", row);
+            $("form", row).addEventListener("submit", ev => {
+              ev.preventDefault();
+              const query = input.value.trim();
+              if (!query) return;
+              const url = buildSearchUrl(engine.pattern, query);
+              cfg.newTab !== false ? window.open(url, "_blank", "noopener") : (location.href = url);
+            });
+            list.appendChild(row);
+          });
+        },
+      },
+
+      image: {
+        name: "Image",
+        icon: "🖼️",
+        defaults: () => ({ url: "https://picsum.photos/600/400", link: "" }),
+        fields: [
+          { key: "url", label: "URL de l'image", type: "url" },
+          { key: "link", label: "Lien au clic (optionnel)", type: "url" },
+        ],
+        render(body, cfg) {
+          const wrap = document.createElement("a");
+          wrap.className = "widget-image";
+          if (cfg.link) { wrap.href = cfg.link; wrap.target = "_blank"; wrap.rel = "noopener"; }
+          wrap.innerHTML = `
+        <img alt="" src="${esc(cfg.url)}"
+          onerror="this.outerHTML='<div class=\\'image-fallback\\'>🖼️<span>Image indisponible</span></div>'" />`;
+          body.style.padding = "0";
+          body.appendChild(wrap);
+        },
+      },
+
+      agenda: {
+        name: "Agenda",
+        icon: "📅",
+        defaults: () => ({ events: "" }),
+        fields: [
+          { key: "events", label: "Événements — un par ligne : AAAA-MM-JJ | HH:MM | Titre", type: "textarea" },
+        ],
+        render(body, cfg) {
+          const events = String(cfg.events || "").split("\n")
+            .map(l => l.trim()).filter(Boolean)
+            .map(l => {
+              const [date, time, ...label] = l.split("|").map(p => p.trim());
+              return { date, time: time && /^\d{2}:\d{2}$/.test(time) ? time : "", label: label.join(" | ") || "Sans titre" };
+            })
+            .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+          body.innerHTML = `<div class="widget-agenda"></div>`;
+          const list = $(".widget-agenda", body);
+
+          if (!events.length) {
+            list.innerHTML = `<div class="agenda-empty">Aucun événement prévu 🎉</div>`;
+            return;
+          }
+          const now = new Date();
+          for (const ev of events.slice(0, 5)) {
+            const d = new Date(ev.date + "T00:00:00");
+            if (isNaN(d)) continue;
+            const days = Math.round((d - new Date(now.toDateString())) / 86400000);
+            const badge = days === 0 ? "aujourd'hui" : days === 1 ? "demain" : days < 0 ? "passé" : "J-" + days;
+            const item = document.createElement("div");
+            item.className = "agenda-item";
+            item.innerHTML = `
+          <span class="agenda-date">${d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</span>
+          <div>
+            <div class="agenda-label">${esc(ev.label)}</div>
+            <div class="agenda-meta">${esc(badge)}${ev.time ? " · " + esc(ev.time) : ""}</div>
+          </div>`;
+            list.appendChild(item);
+          }
+          if (events.length > 5) {
+            const more = document.createElement("div");
+            more.className = "agenda-meta";
+            more.textContent = `+ ${events.length - 5} autre(s)…`;
+            list.appendChild(more);
+          }
+        },
+      },
+
+      note: {
+        name: "Note",
+        icon: "📝",
+        defaults: () => ({ title: "", text: "Une petite note…" }),
+        fields: [
+          { key: "text", label: "Contenu de la note", type: "textarea" },
+        ],
+        render(body, cfg, ctx) {
+
+          body.innerHTML =
+            `<div class="widget-note">${esc(cfg.text)}</div>`;
+
+          body.addEventListener("click", () => {
+
+            if (
+              document.body.classList.contains(
+                "edit-mode"
+              )
+            ) {
+              return;
+            }
+
+            openNoteEditor(
+              ctx.tile,
+              cfg.title || "Note"
+            );
+
+          });
+
+        },
+      },
+    };
+
+    /* ================================================================
+       3. RENDER
+       ================================================================ */
+
+    /* Timers des widgets : vidés à chaque rendu complet */
+    let widgetTimers = [];
+    const makeCtx = () => ({
+      tick(fn, ms) { widgetTimers.push(setInterval(fn, ms)); fn(); },
+    });
+    function clearTimers() { widgetTimers.forEach(clearInterval); widgetTimers = []; }
+
+    function applyTheme() {
+      document.documentElement.dataset.theme = state.theme;
+      $("#btnTheme").textContent = state.theme === "dark" ? "🌙" : "☀️";
+      $("#btnTheme").title = state.theme === "dark" ? "Passer en thème clair" : "Passer en thème sombre";
+    }
+
+    function renderHeader() {
+      /* Nom de la page dans le navigateur = titre de la page */
+      document.title = state.title || "Ma Startpage";
+      $("#pageTitle").textContent = state.title || "Ma Startpage";
+      /* Date et/ou numéro de semaine sous le titre — tous deux optionnels */
+      const showDate = state.showDate !== false;
+      const showWeek = state.showWeek === true;
+      const parts = [];
+      if (showDate) parts.push(new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
+      if (showWeek) parts.push("Semaine " + isoWeek(new Date()));
+      $("#pageDate").textContent = parts.join(" · ");
+      /* Logo du titre (PNG / SVG / JPG, optionnel) */
+      const wrap = $("#titleLogo");
+      wrap.innerHTML = "";
+      if (state.titleLogo) {
+        const img = document.createElement("img");
+        img.src = state.titleLogo;
+        img.alt = "";
+        img.addEventListener("error", () => img.remove());
+        wrap.appendChild(img);
+      }
+      /* Favicon de l'onglet = image du titre, si définie */
+      const fav = $("#favicon");
+      if (state.titleLogo) {
+        fav.href = state.titleLogo;
+        fav.type = state.titleLogo.includes("svg") ? "image/svg+xml" : "image/png";
+      } else {
+        fav.removeAttribute("href");
+        fav.removeAttribute("type");
+      }
+    }
+
+    function render() {
+      clearTimers();
+      applyTheme();
+      renderHeader();
+      /* Rafraîchit date/semaine du titre si la page reste ouverte plusieurs jours */
+      widgetTimers.push(setInterval(renderHeader, 60000));
+      renderGroups();
+      saveState();
+    }
+
+    function renderGroups() {
+      const main = $("#groups");
+      const topbarHost = $("#topbarWidgets");
+      main.innerHTML = "";
+      topbarHost.innerHTML = "";
+      state.groups.forEach((group, gi) => {
+        const rendered = renderGroup(group, gi);
+        (group.layout === "header" ? topbarHost : main).appendChild(rendered);
+      });
+      if (activeGlobalSearch) setTimeout(() => applyGlobalTileSearch(activeGlobalSearch), 0);
+    }
+
+    function renderGroup(group, gi) {
+      const sec = document.createElement("section");
+      sec.className = "group" + (group.collapsed ? " collapsed" : "");
+      sec.dataset.gi = gi;
+      /* Les anciennes configurations sans ce champ restent en taille normale. */
+      sec.dataset.size = ["very-compact", "compact", "normal", "large"].includes(group.size) ? group.size : "normal";
+      sec.dataset.layout = group.layout === "header" ? "header" : "standard";
+      if (sec.dataset.layout === "header") sec.style.setProperty("--header-widget-width", (Number(group.headerWidth) || 620) + "px");
+
+      /* --- En-tête : chevron, titre, contrôles d'édition --- */
+      const header = document.createElement("div");
+      header.className = "group-header";
+
+      const chevron = document.createElement("button");
+      chevron.className = "chevron";
+      chevron.title = group.collapsed ? "Déplier" : "Replier";
+      chevron.innerHTML = "▾";
+      chevron.addEventListener("click", () => { group.collapsed = !group.collapsed; render(); });
+
+      /* Logo de l'ensemble (PNG / SVG via URL ou fichier local importé) */
+      let logo = null;
+      if (group.logo) {
+        logo = document.createElement("img");
+        logo.className = "group-logo";
+        logo.src = group.logo;
+        logo.alt = "";
+        logo.addEventListener("error", () => logo.remove());
+      }
+
+      const title = document.createElement("div");
+      title.className = "group-title";
+      title.textContent = group.title;
+      title.addEventListener("click", () => { if (!document.body.classList.contains("edit-mode")) group.collapsed = !group.collapsed, render(); });
+
+      const controls = document.createElement("div");
+      controls.className = "top-actions";
+      controls.innerHTML = `
+    <button class="icon-btn edit-only" data-act="add-tile"   title="Ajouter une tuile">＋</button>
+    <button class="icon-btn edit-only" data-act="rename"    title="Renommer l'ensemble">✏️</button>
+    <button class="icon-btn edit-only" data-act="delete"    title="Supprimer l'ensemble">🗑️</button>
+    <button class="icon-btn edit-only" data-act="move-up"   title="Monter">↑</button>
+    <button class="icon-btn edit-only" data-act="move-down" title="Descendre">↓</button>`;
+      controls.addEventListener("click", (ev) => {
+        const act = ev.target.closest("button")?.dataset.act;
+        if (!act) return;
+        if (act === "add-tile") openTypePicker(gi);
+        if (act === "rename") {
+          openFormModal({
+            title: "Modifier l'ensemble",
+            fields: [
+              { key: "title", label: "Nom de l'ensemble", type: "text" },
+              { key: "logo", label: "Logo de l'ensemble (PNG / SVG / JPG)", type: "image" },
+              {
+                key: "layout", label: "Type d'ensemble", type: "select", options: [
+                  { value: "standard", label: "Standard" },
+                  { value: "header", label: "Topbar, centré" },
+                ]
+              },
+              { key: "headerWidth", label: "Largeur dans la topbar en pixels (ex. 620)", type: "text" },
+              {
+                key: "size", label: "Taille homogène des tuiles", type: "select", options: [
+                  { value: "very-compact", label: "Très compact" },
+                  { value: "compact", label: "Compact" },
+                  { value: "normal", label: "Normal" },
+                  { value: "large", label: "Large" },
+                ]
+              },
+            ],
+            values: { size: "normal", layout: "standard", headerWidth: "620", ...group },
+            submitText: "Enregistrer",
+            onSubmit: (v) => {
+              group.title = v.title || group.title;
+              group.logo = v.logo || "";
+              group.size = v.size || "normal";
+              group.layout = v.layout === "header" ? "header" : "standard";
+              group.headerWidth = Math.max(280, Math.min(1200, Number(v.headerWidth) || 620));
+              render();
+            },
+          });
+        }
+        if (act === "delete" && confirm(`Supprimer l'ensemble « ${group.title} » et toutes ses tuiles ?`)) {
+          state.groups.splice(gi, 1); render();
+        }
+        if (act === "move-up" && gi > 0) { [state.groups[gi - 1], state.groups[gi]] = [state.groups[gi], state.groups[gi - 1]]; render(); }
+        if (act === "move-down" && gi < state.groups.length - 1) { [state.groups[gi + 1], state.groups[gi]] = [state.groups[gi], state.groups[gi + 1]]; render(); }
+      });
+
+      header.append(chevron, ...(logo ? [logo] : []), title, controls);
+
+      /* --- Corps : grille de tuiles (repliable) --- */
+      const body = document.createElement("div");
+      body.className = "group-body";
+      const inner = document.createElement("div");
+      inner.className = "group-body-inner";
+      const grid = document.createElement("div");
+      grid.className = "tiles-grid";
+      group.tiles.forEach((tile, ti) => grid.appendChild(renderTile(tile, gi, ti)));
+      if (!group.tiles.length) {
+        const hint = document.createElement("div");
+        hint.className = "grid-empty";
+        hint.textContent = "Zone de dépôt — glissez des tuiles ici, ou ajoutez-en avec ＋";
+        grid.appendChild(hint);
+      }
+      /* Dépôt sur une zone vide de la grille : la tuile est ajoutée à la fin du groupe */
+      grid.addEventListener("dragover", (ev) => {
+        if (!ev.dataTransfer.types.includes("text/x-tile")) return;
+        ev.preventDefault();
+        grid.classList.add("drop-zone");
+      });
+      grid.addEventListener("dragleave", (ev) => {
+        if (!grid.contains(ev.relatedTarget)) grid.classList.remove("drop-zone");
+      });
+      grid.addEventListener("drop", (ev) => {
+        if (!ev.dataTransfer.types.includes("text/x-tile")) return;
+        ev.preventDefault();
+        grid.classList.remove("drop-zone");
+        const from = JSON.parse(ev.dataTransfer.getData("text/x-tile"));
+        moveTile(from, { gi, ti: group.tiles.length });
+      });
+      inner.appendChild(grid);
+      body.appendChild(inner);
+
+      /* --- Drag & drop des groupes (mode édition) --- */
+      sec.draggable = document.body.classList.contains("edit-mode");
+      sec.addEventListener("dragstart", (ev) => {
+        if (!document.body.classList.contains("edit-mode")) return ev.preventDefault();
+        ev.dataTransfer.setData("text/x-group", String(gi));
+        ev.dataTransfer.effectAllowed = "move";
+      });
+      sec.addEventListener("dragover", (ev) => {
+        if (!ev.dataTransfer.types.includes("text/x-group")) return;
+        ev.preventDefault();
+        if (Number(ev.dataTransfer.getData("text/x-group")) !== gi) sec.classList.add("drag-over");
+      });
+      sec.addEventListener("dragleave", () => sec.classList.remove("drag-over"));
+      sec.addEventListener("drop", (ev) => {
+        if (!ev.dataTransfer.types.includes("text/x-group")) return;
+        ev.preventDefault();
+        sec.classList.remove("drag-over");
+        const from = Number(ev.dataTransfer.getData("text/x-group"));
+        if (from === gi) return;
+        const [g] = state.groups.splice(from, 1);
+        state.groups.splice(from < gi ? gi - 1 : gi, 0, g);
+        render();
+      });
+
+      sec.append(header, body);
+      return sec;
+    }
+
+    function renderTile(tile, gi, ti) {
+      const def = Widgets[tile.type];
+      const el = document.createElement("div");
+      el.className = "tile";
+      el.dataset.gi = gi; el.dataset.ti = ti;
+      el.draggable = document.body.classList.contains("edit-mode");
+      /* Tooltip commun à tous les types de tuiles. Le commentaire est stocké
+         au niveau de la tuile afin de ne pas dépendre de la configuration du widget. */
+      el.addEventListener("mouseenter", ev => showTileTooltip(tile.comment, ev));
+      el.addEventListener("mousemove", positionTileTooltip);
+      el.addEventListener("mouseleave", hideTileTooltip);
+      el.addEventListener("pointerdown", hideTileTooltip);
+      /* Largeur sauvegardée : la tuile peut s'étendre sur plusieurs colonnes */
+      if (tile.span && tile.span > 1) el.style.gridColumn = `span ${tile.span}`;
+      if (!def) {
+        el.innerHTML = `<div class="tile-body"><div class="agenda-empty">Type inconnu : ${esc(tile.type)}</div></div>`;
+        return el;
+      }
+
+      const body = document.createElement("div");
+      body.className = "tile-body";
+      try {
+        const ctx = {
+          ...makeCtx(),
+          tile,
+          gi,
+          ti
+        };
+
+        def.render(
+          body,
+          tile.config || {},
+          ctx
+        );
+
+      } catch (e) { body.textContent = "Erreur du widget"; }
+      el.appendChild(body);
+
+      /* Barre d'édition de la tuile */
+      const bar = document.createElement("div");
+      bar.className = "tile-edit-bar";
+      bar.innerHTML = `
+    <button class="icon-btn" data-act="edit"   title="Modifier la tuile">✏️</button>
+    <button class="icon-btn danger" data-act="delete" title="Supprimer la tuile">✕</button>`;
+      bar.addEventListener("click", (ev) => {
+        const act = ev.target.closest("button")?.dataset.act;
+        if (act === "edit") {
+          if (tile.type === "search") {
+            openSearchWidgetEditor({
+              tile,
+              title: `Modifier — ${def.name}`,
+              onSubmit: cfg => {
+                tile.comment = String(cfg.__tileComment || "").trim();
+                delete cfg.__tileComment;
+                tile.config = { ...tile.config, ...cfg };
+                delete tile.config.engine;
+                render();
+              },
+            });
+          } else {
+            openFormModal({
+              title: `Modifier — ${def.name}`,
+              fields: fieldsWithTileComment(def.fields),
+              values: { ...def.defaults(), ...tile.config, __tileComment: tile.comment || "" },
+              submitText: "Enregistrer",
+              onSubmit: (v) => {
+                tile.comment = String(v.__tileComment || "").trim();
+                delete v.__tileComment;
+                tile.config = { ...tile.config, ...v };
+                render();
+              },
+            });
+          }
+        }
+        if (act === "delete") { state.groups[gi].tiles.splice(ti, 1); render(); }
+      });
+      el.appendChild(bar);
+
+      /* Poignée de redimensionnement (mode édition) : glisser pour occuper plus ou moins de colonnes */
+      const handle = document.createElement("div");
+      handle.className = "resize-handle";
+      handle.textContent = "⤢";
+      handle.title = "Glisser pour redimensionner";
+      handle.addEventListener("pointerdown", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const grid = el.parentElement;
+        const cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+        const gap = parseFloat(getComputedStyle(grid).columnGap) || 12;
+        const gridW = grid.getBoundingClientRect().width;
+        const colW = (gridW - gap * (cols - 1)) / cols;
+        /* Origine du calcul = bord gauche de LA tuile redimensionnée (et non
+           celui de la grille) : sinon la position de la tuile dans la grille
+           faussait l'étendue calculée (ex : 2e tuile passant d'office à 2) */
+        const rect = el.getBoundingClientRect();
+        el.draggable = false;
+        const onMove = (e) => {
+          const span = Math.max(1, Math.min(cols, Math.round((e.clientX - rect.left + gap / 2) / (colW + gap))));
+          el.style.gridColumn = `span ${span}`;
+        };
+        const onUp = () => {
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onUp);
+          el.draggable = document.body.classList.contains("edit-mode");
+          const m = el.style.gridColumn.match(/span (\d+)/);
+          tile.span = m ? Number(m[1]) : 1;
+          render();
+        };
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+      });
+      el.appendChild(handle);
+
+      /* Drag & drop de la tuile (mode édition) */
+      el.addEventListener("dragstart", (ev) => {
+        if (!document.body.classList.contains("edit-mode")) { ev.preventDefault(); return; }
+        ev.stopPropagation();
+        ev.dataTransfer.setData("text/x-tile", JSON.stringify({ gi, ti }));
+        el.classList.add("dragging");
+        ev.dataTransfer.effectAllowed = "move";
+      });
+      el.addEventListener("dragend", () => el.classList.remove("dragging"));
+      el.addEventListener("dragover", (ev) => {
+        if (!ev.dataTransfer.types.includes("text/x-tile")) return;
+        ev.preventDefault();
+        el.classList.add("drag-over");
+      });
+      el.addEventListener("dragleave", () => el.classList.remove("drag-over"));
+      el.addEventListener("drop", (ev) => {
+        if (!ev.dataTransfer.types.includes("text/x-tile")) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        el.classList.remove("drag-over");
+        const from = JSON.parse(ev.dataTransfer.getData("text/x-tile"));
+        /* Insertion avant/après la tuile cible selon la moitié survolée */
+        const r = el.getBoundingClientRect();
+        const after = ev.clientX - r.left > r.width / 2;
+        moveTile(from, { gi, ti: ti + (after ? 1 : 0) });
+      });
+
+      return el;
+    }
+
+    function moveTile(from, to) {
+      if (from.gi === to.gi && from.ti === to.ti) return;
+      const src = state.groups[from.gi];
+      const dst = state.groups[to.gi];
+      if (!src || !dst) return;
+      const [tile] = src.tiles.splice(from.ti, 1);
+      let index = from.gi === to.gi && from.ti < to.ti ? to.ti - 1 : to.ti;
+      index = Math.max(0, Math.min(index, dst.tiles.length));
+      dst.tiles.splice(index, 0, tile);
+      render();
+    }
+
+    /* ================================================================
+       4. EDITOR — Modales, formulaires, sélecteur de type
+       ================================================================ */
+    const overlay = $("#modalOverlay"), box = $("#modalBox");
+
+    function closeModal() { overlay.classList.remove("open"); box.innerHTML = ""; }
+    /* Ne ferme la modale au clic sur le fond que si le clic a commencé ET
+       terminé sur le fond : une sélection de texte glissée hors de la fenêtre
+       (mousedown dans un champ, souris ressortie) ne la ferme plus */
+    let overlayClickFromBackdrop = false;
+    overlay.addEventListener("mousedown", (ev) => { overlayClickFromBackdrop = ev.target === overlay; });
+    overlay.addEventListener("click", (ev) => {
+      if (ev.target === overlay && overlayClickFromBackdrop) closeModal();
+      overlayClickFromBackdrop = false;
+    });
+    document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeModal(); });
+
+    function openModal(html) { box.innerHTML = html; overlay.classList.add("open"); }
+
+    /* Modale générique : construit un formulaire à partir d'une déclaration de champs */
+    function fieldsWithTileComment(fields = []) {
+      return [...fields, {
+        key: "__tileComment",
+        label: "Commentaire affiché au survol de la tuile",
+        type: "textarea"
+      }];
+    }
+
+    function openFormModal({ title, fields = [], values = {}, submitText = "Valider", onSubmit }) {
+      const fieldHtml = fields.map((f) => {
+        const val = values[f.key] ?? f.default ?? "";
+        if (f.type === "checkbox")
+          return `<div class="field checkbox-row">
+                <input type="checkbox" id="f-${f.key}" data-key="${f.key}" ${val ? "checked" : ""} />
+                <label for="f-${f.key}">${esc(f.label)}</label>
+              </div>`;
+        if (f.type === "select")
+          return `<div class="field"><label>${esc(f.label)}</label>
+                <select data-key="${f.key}">${f.options.map(o =>
+            `<option value="${esc(o.value)}" ${String(val) === String(o.value) ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
+                </select></div>`;
+        if (f.type === "textarea")
+          return `<div class="field"><label>${esc(f.label)}</label>
+                <textarea data-key="${f.key}" rows="5">${esc(val)}</textarea></div>`;
+        if (f.type === "image")
+          return `<div class="field"><label>${esc(f.label)}</label>
+                <div class="image-input">
+                  <input type="url" data-key="${f.key}" value="${esc(val)}" placeholder="URL https://… (.png / .svg / .jpg)" />
+                  <button type="button" class="btn" data-pick="${f.key}" title="Choisir un fichier local (PNG / SVG)">📁</button>
+                </div>
+                <div class="image-preview" data-preview="${f.key}">${val ? `<img src="${esc(val)}" alt="" />` : ""}</div>
+              </div>`;
+        return `<div class="field"><label>${esc(f.label)}</label>
+              <input type="${f.type === "url" ? "url" : "text"}" data-key="${f.key}" value="${esc(val)}" /></div>`;
+      }).join("");
+
+      openModal(`
+    <h3>${esc(title)}</h3>
+    <form id="modalForm">${fieldHtml}
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>Annuler</button>
+        <button type="submit" class="btn primary">${esc(submitText)}</button>
+      </div>
+    </form>`);
+
+      $("[data-close]", box).addEventListener("click", closeModal);
+
+      /* Champ URL intelligent : un collage « Titre | URL » est découpé à la volée
+         et réparti automatiquement dans les champs Titre et URL */
+      const urlIn = box.querySelector('[data-key="url"]');
+      const titleIn = box.querySelector('[data-key="title"]');
+      if (urlIn && titleIn) {
+        urlIn.addEventListener("input", () => {
+          const parsed = splitTitleUrl(urlIn.value);
+          if (parsed) {
+            urlIn.value = parsed.url;
+            if (!titleIn.value.trim()) titleIn.value = parsed.title;
+          }
+        });
+      }
+
+      /* Focus automatique sur le premier champ de saisie : le collage (Ctrl+V)
+         arrive directement dans le bon champ, sans cliquer au préalable */
+      const firstField = box.querySelector('#modalForm input:not([type="checkbox"]), #modalForm textarea, #modalForm select');
+      if (firstField) firstField.focus();
+      box.querySelectorAll("[data-pick]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const key = btn.dataset.pick;
+          const input = box.querySelector(`[data-key="${key}"]`);
+          const preview = box.querySelector(`[data-preview="${key}"]`);
+          const file = document.createElement("input");
+          file.type = "file";
+          file.accept = "image/png,image/svg+xml,image/jpeg,image/gif,image/webp,image/*";
+          file.addEventListener("change", () => {
+            const f = file.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              input.value = reader.result;
+              preview.innerHTML = `<img src="${esc(reader.result)}" alt="" />`;
+            };
+            reader.readAsDataURL(f);
+          });
+          file.click();
+        });
+      });
+
+      $("#modalForm").addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        const out = {};
+        fields.forEach((f) => {
+          const input = box.querySelector(`[data-key="${f.key}"]`);
+          out[f.key] = f.type === "checkbox" ? input.checked : input.value;
+        });
+        /* Sécurité : re-découpe un éventuel collage « Titre | URL » non traité à la saisie */
+        if (out.url !== undefined && out.title !== undefined && String(out.url).includes("|")) {
+          const parsed = splitTitleUrl(out.url);
+          if (parsed) {
+            out.url = parsed.url;
+            if (!out.title) out.title = parsed.title;
+          }
+        }
+        closeModal();
+        onSubmit(out);
+      });
+    }
+
+    function openSearchWidgetEditor({ tile = null, onSubmit, title = "Configurer la recherche" }) {
+      ensureSearchEngineCatalog();
+      const initial = tile?.config || Widgets.search.defaults();
+      const legacy = initial.engine || "duckduckgo";
+      let selected = Array.isArray(initial.engines) && initial.engines.length ? [...initial.engines] : [legacy];
+      let newTab = initial.newTab !== false;
+
+      const renderManager = () => {
+        const catalog = getSearchEngines();
+        openModal(`
+          <h3>${esc(title)}</h3>
+          <div class="search-engine-manager">
+            <div class="search-manager-section">
+              <h4>Moteurs affichés dans cette tuile</h4>
+              <div class="search-manager-help">Cochez les moteurs à afficher. Utilisez ↑ et ↓ pour définir leur ordre dans cette tuile.</div>
+              <div id="searchEngineChoices"></div>
+              <label class="checkbox-row" style="margin-top:10px"><input id="searchNewTab" type="checkbox" ${newTab ? "checked" : ""}> Ouvrir les résultats dans un nouvel onglet</label>
+              <div class="field" style="margin-top:12px"><label>Commentaire affiché au survol de la tuile</label><textarea id="searchTileComment" rows="3">${esc(tileComment)}</textarea></div>
+            </div>
+            <div class="search-manager-section">
+              <h4>Ajouter un moteur au catalogue global</h4>
+              <div class="search-manager-help">Utilisez <strong>{query}</strong> à l’emplacement de la recherche. Si ce marqueur est absent, <strong>?q={query}</strong> sera ajouté automatiquement.</div>
+              <div class="search-custom-form" style="margin-top:10px">
+                <div class="field"><label>Nom</label><input id="customEngineName" type="text" placeholder="Mon moteur"></div>
+                <div class="field"><label>URL de requête</label><input id="customEngineUrl" type="url" placeholder="https://monmoteur.com/search?q={query}"></div>
+                <button id="addCustomEngine" class="btn" type="button">Ajouter</button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn" data-close type="button">Annuler</button>
+            <button id="saveSearchWidget" class="btn primary" type="button">Enregistrer</button>
+          </div>`);
+
+        const choices = $("#searchEngineChoices", box);
+        /* Les moteurs sélectionnés sont rendus dans l'ordre propre à la tuile.
+           Les moteurs non sélectionnés restent ensuite dans l'ordre du catalogue global. */
+        const orderedCatalog = [
+          ...selected.map(id => catalog.find(engine => engine.id === id)).filter(Boolean),
+          ...catalog.filter(engine => !selected.includes(engine.id)),
+        ];
+        orderedCatalog.forEach(engine => {
+          const row = document.createElement("div");
+          row.className = "search-engine-choice";
+          const checked = selected.includes(engine.id);
+          const selectedIndex = selected.indexOf(engine.id);
+          const canMoveUp = checked && selectedIndex > 0;
+          const canMoveDown = checked && selectedIndex < selected.length - 1;
+          row.innerHTML = `
+            <input type="checkbox" data-select-engine="${esc(engine.id)}" ${checked ? "checked" : ""}>
+            <div><strong>${esc(engine.name)}</strong><div class="engine-url" title="${esc(engine.pattern)}">${esc(engine.pattern)}</div></div>
+            <div>
+              <button class="btn" type="button" data-move-up="${esc(engine.id)}" title="Monter" ${canMoveUp ? "" : "disabled"}>↑</button>
+              <button class="btn" type="button" data-move-down="${esc(engine.id)}" title="Descendre" ${canMoveDown ? "" : "disabled"}>↓</button>
+            </div>
+            ${engine.builtin ? "<span title=\"Moteur par défaut\">🔒</span>" : `<button class="btn" type="button" data-delete-engine="${esc(engine.id)}" title="Supprimer du catalogue">✕</button>`}`;
+          choices.appendChild(row);
+        });
+
+        box.querySelectorAll("[data-select-engine]").forEach(input => input.addEventListener("change", () => {
+          const id = input.dataset.selectEngine;
+          if (input.checked && !selected.includes(id)) selected.push(id);
+          if (!input.checked) selected = selected.filter(x => x !== id);
+        }));
+        const move = (id, delta) => {
+          const current = selected.indexOf(id);
+          if (current < 0) return;
+          const target = current + delta;
+          if (target < 0 || target >= selected.length) return;
+          [selected[current], selected[target]] = [selected[target], selected[current]];
+          newTab = $("#searchNewTab", box).checked;
+          tileComment = $("#searchTileComment", box)?.value || tileComment;
+          renderManager();
+        };
+        box.querySelectorAll("[data-move-up]").forEach(btn => btn.addEventListener("click", () => move(btn.dataset.moveUp, -1)));
+        box.querySelectorAll("[data-move-down]").forEach(btn => btn.addEventListener("click", () => move(btn.dataset.moveDown, 1)));
+        box.querySelectorAll("[data-delete-engine]").forEach(btn => btn.addEventListener("click", () => {
+          const id = btn.dataset.deleteEngine;
+          const engine = getSearchEngines().find(e => e.id === id);
+          if (!engine || engine.builtin || !confirm(`Supprimer le moteur « ${engine.name} » du catalogue global ?`)) return;
+          state.searchEngines = state.searchEngines.filter(e => e.id !== id);
+          removeSearchEngineEverywhere(id);
+          selected = selected.filter(x => x !== id);
+          saveState();
+          renderManager();
+        }));
+        $("#addCustomEngine", box).addEventListener("click", () => {
+          const name = $("#customEngineName", box).value.trim();
+          const pattern = normalizeSearchPattern($("#customEngineUrl", box).value);
+          if (!name || !pattern) return alert("Saisissez un nom et une URL de requête.");
+          let baseId = normalizeSearch(name).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "engine";
+          let id = baseId, suffix = 2;
+          while (getSearchEngines().some(e => e.id === id)) id = `${baseId}-${suffix++}`;
+          state.searchEngines.push({ id, name, pattern, builtin: false });
+          selected.push(id);
+          newTab = $("#searchNewTab", box).checked;
+          saveState();
+          renderManager();
+        });
+        $("[data-close]", box).addEventListener("click", closeModal);
+        $("#saveSearchWidget", box).addEventListener("click", () => {
+          newTab = $("#searchNewTab", box).checked;
+          tileComment = $("#searchTileComment", box).value;
+          if (!selected.length) return alert("Sélectionnez au moins un moteur pour cette tuile.");
+          closeModal();
+          onSubmit({ engines: selected, newTab, __tileComment: tileComment });
+        });
+      };
+      renderManager();
+    }
+
+    /* Sélecteur de type de widget : généré dynamiquement depuis le registre */
+    function openTypePicker(gi) {
+      const cards = Object.entries(Widgets).map(([type, def]) =>
+        `<button class="type-card" data-type="${type}">
+       <span class="t-ico">${def.icon}</span><span class="t-name">${esc(def.name)}</span>
+     </button>`).join("");
+
+      openModal(`
+    <h3>Quel type de tuile ?</h3>
+    <div class="type-grid">${cards}</div>
+    <div class="modal-actions"><button class="btn" data-close>Annuler</button></div>`);
+
+      $("[data-close]", box).addEventListener("click", closeModal);
+      box.querySelectorAll(".type-card").forEach((btn) =>
+        btn.addEventListener("click", () => {
+          const type = btn.dataset.type;
+          const def = Widgets[type];
+          if (type === "search") {
+            openSearchWidgetEditor({
+              title: `Nouvelle tuile — ${def.name}`,
+              onSubmit: cfg => {
+                const comment = String(cfg.__tileComment || "").trim();
+                delete cfg.__tileComment;
+                state.groups[gi].tiles.push({ id: uid(), type, config: cfg, comment });
+                render();
+              },
+            });
+          } else {
+            openFormModal({
+              title: `Nouvelle tuile — ${def.name}`,
+              fields: fieldsWithTileComment(def.fields),
+              values: { ...def.defaults(), __tileComment: "" },
+              submitText: "Ajouter",
+              onSubmit: (cfg) => {
+                const comment = String(cfg.__tileComment || "").trim();
+                delete cfg.__tileComment;
+                state.groups[gi].tiles.push({ id: uid(), type, config: cfg, comment });
+                render();
+              },
+            });
+          }
+        }));
+    }
+
+    /* ================================================================
+       5. ACTIONS GLOBALES — Thème, mode édition, groupes, import/export
+       ================================================================ */
+    $("#btnTheme").addEventListener("click", () => {
+      state.theme = state.theme === "dark" ? "light" : "dark";
+      render();
+    });
+
+    $("#btnEdit").addEventListener("click", () => {
+      const on = document.body.classList.toggle("edit-mode");
+      $("#btnEdit").classList.toggle("active", on);
+      $("#btnEdit").title = on ? "Quitter le mode édition" : "Mode édition";
+      render(); /* met à jour les attributs draggable et les contrôles d'édition */
+    });
+
+    $("#btnEditTitle").addEventListener("click", () => {
+      openFormModal({
+        title: "Titre de la page",
+        fields: [
+          { key: "title", label: "Titre", type: "text" },
+          { key: "titleLogo", label: "Image du titre (PNG / SVG / JPG)", type: "image" },
+          { key: "showDate", label: "Afficher la date sous le titre", type: "checkbox" },
+          { key: "showWeek", label: "Afficher la semaine en cours", type: "checkbox" },
+        ],
+        values: { showDate: true, showWeek: false, ...state },
+        submitText: "Enregistrer",
+        onSubmit: (v) => {
+          state.title = v.title || state.title;
+          state.titleLogo = v.titleLogo || "";
+          state.showDate = v.showDate;
+          state.showWeek = v.showWeek;
+          render();
+        },
+      });
+    });
+
+    $("#btnAddGroup").addEventListener("click", () => {
+      openFormModal({
+        title: "Nouvel ensemble de tuiles",
+        fields: [
+          { key: "title", label: "Nom de l'ensemble", type: "text" },
+          { key: "logo", label: "Logo de l'ensemble (PNG / SVG / JPG)", type: "image" },
+          {
+            key: "layout", label: "Type d'ensemble", type: "select", options: [
+              { value: "standard", label: "Standard" },
+              { value: "header", label: "Topbar, centré" },
+            ]
+          },
+          { key: "headerWidth", label: "Largeur dans la topbar en pixels (ex. 620)", type: "text" },
+          {
+            key: "size", label: "Taille homogène des tuiles", type: "select", options: [
+              { value: "very-compact", label: "Très compact" },
+              { value: "compact", label: "Compact" },
+              { value: "normal", label: "Normal" },
+              { value: "large", label: "Large" },
+            ]
+          },
+        ],
+        values: { title: "Nouvel ensemble", logo: "", layout: "standard", headerWidth: "620", size: "normal" },
+        submitText: "Créer",
+        onSubmit: (v) => {
+          state.groups.push({
+            id: uid(), title: v.title || "Sans nom", logo: v.logo || "",
+            layout: v.layout === "header" ? "header" : "standard",
+            headerWidth: Math.max(280, Math.min(1200, Number(v.headerWidth) || 620)),
+            size: v.size || "normal", collapsed: false, tiles: []
+          });
+          render();
+        },
+      });
+    });
+
+    /* Export / Import JSON : utile pour sauvegarder ou migrer sa configuration */
+    $("#btnExport").addEventListener("click", () => {
+      try {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "startpage-config.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      } catch (e) { alert("Export indisponible dans cet environnement."); }
+    });
+
+    $("#btnImport").addEventListener("click", () => $("#importFile").click());
+    $("#importFile").addEventListener("change", (ev) => {
+      const file = ev.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const s = JSON.parse(reader.result);
+          if (!s || !Array.isArray(s.groups)) throw new Error("bad");
+          state = s;
+          render();
+        } catch { alert("Fichier de configuration invalide."); }
+      };
+      reader.readAsText(file);
+      ev.target.value = "";
+    });
+
+    /* Au redimensionnement de la fenêtre, on borne l'étendue des tuiles
+       au nombre de colonnes réellement disponibles */
+    window.addEventListener("resize", () => {
+      document.querySelectorAll(".tiles-grid").forEach((grid) => {
+        const cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+        grid.querySelectorAll(".tile").forEach((t) => {
+          const m = t.style.gridColumn.match(/span (\d+)/);
+          if (m && Number(m[1]) > cols) t.style.gridColumn = `span ${cols}`;
+        });
+      });
+    });
+
+    /* ================================================================
+       6. FAVORIS — Import depuis le navigateur et ajout rapide
+       ----------------------------------------------------------------
+       - Import : une page web ne peut pas lire directement les favoris
+         du navigateur (sécurité). On importe donc le fichier d'export
+         HTML au format Netscape : Chrome/Edge/Firefox → Ctrl+Shift+O
+         → « Exporter les favoris ». L'outil affiche l'arborescence
+         (dossiers inclus) et permet de cocher favori par favori.
+       - Ajout rapide : Ctrl+D sur la startpage ouvre le formulaire,
+         et le bookmarklet « 📌 » pré-remplit ce même formulaire depuis
+         n'importe quel site.
+       ================================================================ */
+
+    /* --- Helpers d'arborescence --- */
+    function walkTree(nodes, fn) { for (const n of nodes) { fn(n); if (n.children) walkTree(n.children, fn); } }
+    function countLeaves(n) {
+      return n.type === "bookmark" ? 1 : n.children.reduce((s, c) => s + countLeaves(c), 0);
+    }
+    function countSelectedIn(n, selected) {
+      return n.type === "bookmark" ? (selected.has(n.nid) ? 1 : 0) : n.children.reduce((s, c) => s + countSelectedIn(c, selected), 0);
+    }
+    function setFolderSelection(n, selected, on) {
+      if (n.type === "bookmark") { on ? selected.add(n.nid) : selected.delete(n.nid); return; }
+      n.children.forEach((c) => setFolderSelection(c, selected, on));
+    }
+
+    /* --- Analyse du fichier d'export (format Netscape) :
+           <DT><H3>Dossier</H3><DL>… <DT><A HREF="…">Titre</A> --- */
+    function parseBookmarks(htmlText) {
+      const doc = new DOMParser().parseFromString(htmlText, "text/html");
+      const rootDL = doc.querySelector("dl");
+      if (!rootDL) return [];
+      let idc = 0;
+      const parseDL = (dl) => {
+        const out = [];
+        dl.querySelectorAll(":scope > dt").forEach((dt) => {
+          const h3 = dt.querySelector(":scope > h3");
+          const a = dt.querySelector(":scope > a");
+          if (h3) {
+            const sub = dt.querySelector(":scope > dl") ||
+              (dt.nextElementSibling && dt.nextElementSibling.tagName === "DL" ? dt.nextElementSibling : null);
+            out.push({ type: "folder", nid: "f" + (idc++), title: h3.textContent.trim(), children: sub ? parseDL(sub) : [] });
+          }
+          if (a && a.getAttribute("href")) {
+            out.push({
+              type: "bookmark", nid: "b" + (idc++),
+              title: (a.textContent || "").trim(),
+              url: a.getAttribute("href"),
+              icon: a.getAttribute("icon") || "", /* icône embarquée par certains exports (data URL) */
+            });
+          }
+        });
+        /* Certains exports placent les liens directement sous <dl> */
+        dl.querySelectorAll(":scope > a[href]").forEach((a) => {
+          out.push({ type: "bookmark", nid: "b" + (idc++), title: (a.textContent || "").trim(), url: a.getAttribute("href"), icon: a.getAttribute("icon") || "" });
+        });
+        return out;
+      };
+      return parseDL(rootDL);
+    }
+
+    /* --- Modale d'import : arborescence cochable + destination --- */
+    function openBookmarksModal(tree) {
+      const selected = new Set();
+      const open = new Set();
+      const nodeById = new Map();
+      walkTree(tree, (n) => { if (n.type === "folder") open.add(n.nid); nodeById.set(n.nid, n); });
+
+      openModal(`
+    <h3>Importer des favoris</h3>
+    <div class="bm-help">
+      Cochez les favoris à importer — cocher un dossier sélectionne
+      automatiquement tout son contenu. Choisissez la destination : une
+      section existante, un nouvel ensemble, ou « un ensemble par
+      dossier sélectionné ».
+    </div>
+    <div class="bm-toolbar">
+      <input type="text" id="bmFilter" placeholder="🔎 Filtrer par nom ou URL…" />
+      <select id="bmTarget"></select>
+      <input type="text" id="bmNewGroup" placeholder="Nom du nouvel ensemble…" style="display:none" />
+      <label class="checkbox-row"><input type="checkbox" id="bmFav" checked /> Utiliser les favicons des sites comme images</label>
+    </div>
+    <div class="bm-tree" id="bmTree"></div>
+    <div class="bm-count" id="bmCount"></div>
+    <div class="modal-actions">
+      <button class="btn" data-close>Annuler</button>
+      <button class="btn primary" id="bmImport">Importer la sélection</button>
+    </div>`);
+
+      /* Bouton Annuler */
+      $("[data-close]", box).addEventListener("click", closeModal);
+
+      const sel = $("#bmTarget", box);
+      sel.innerHTML = state.groups.map((g, i) => `<option value="${i}">${esc(g.title)}</option>`).join("") +
+        `<option value="perFolder">🗂️ Un ensemble par dossier sélectionné…</option>` +
+        `<option value="new">➕ Nouvel ensemble…</option>`;
+      sel.addEventListener("change", () => { $("#bmNewGroup", box).style.display = sel.value === "new" ? "" : "none"; });
+
+      const treeEl = $("#bmTree", box), countEl = $("#bmCount", box), filterEl = $("#bmFilter", box);
+      const matches = (n, q) =>
+        n.type === "bookmark"
+          ? (n.title || "").toLowerCase().includes(q) || (n.url || "").toLowerCase().includes(q)
+          : n.children.some((c) => matches(c, q));
+
+      /* Met à jour compteur + états des cases de dossiers, sans reconstruire l'arbre
+         (pour ne pas perdre la position de défilement ni la saisie du filtre) */
+      const updateAll = () => {
+        countEl.textContent = selected.size + " favori(s) sélectionné(s)";
+        treeEl.querySelectorAll(".bm-folder-row[data-nid]").forEach((row) => {
+          const n = nodeById.get(row.dataset.nid);
+          const cb = row.querySelector("input");
+          const leaves = countLeaves(n), selCount = countSelectedIn(n, selected);
+          cb.checked = leaves > 0 && selCount === leaves;
+          cb.indeterminate = selCount > 0 && selCount < leaves;
+          row.querySelector(".bm-url").textContent = selCount + "/" + leaves;
+        });
+        /* Propage aussi l'état coché aux favoris eux-mêmes (sélection via un dossier) */
+        treeEl.querySelectorAll(".bm-item[data-nid]").forEach((row) => {
+          row.querySelector("input").checked = selected.has(row.dataset.nid);
+        });
+      };
+
+      const renderTree = () => {
+        const q = filterEl.value.trim().toLowerCase();
+        treeEl.innerHTML = "";
+        const renderNode = (n) => {
+          if (q && !matches(n, q)) return null;
+          if (n.type === "bookmark") {
+            const row = document.createElement("label");
+            row.className = "bm-item";
+            row.dataset.nid = n.nid;
+            row.innerHTML = `<input type="checkbox" ${selected.has(n.nid) ? "checked" : ""} />
+          <span class="bm-title">${esc(n.title || n.url)}</span><span class="bm-url">${esc(n.url || "")}</span>`;
+            row.querySelector("input").addEventListener("change", (ev) => {
+              ev.target.checked ? selected.add(n.nid) : selected.delete(n.nid);
+              updateAll();
+            });
+            return row;
+          }
+          const wrap = document.createElement("div");
+          const row = document.createElement("div");
+          row.className = "bm-folder-row";
+          row.dataset.nid = n.nid;
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          /* Cocher un dossier sélectionne (ou désélectionne) tout son contenu */
+          cb.addEventListener("change", () => { setFolderSelection(n, selected, cb.checked); updateAll(); });
+          const tog = document.createElement("button");
+          tog.className = "bm-toggle";
+          tog.textContent = (open.has(n.nid) || q) ? "▾" : "▸";
+          tog.addEventListener("click", () => { open.has(n.nid) ? open.delete(n.nid) : open.add(n.nid); renderTree(); });
+          const name = document.createElement("span");
+          name.className = "bm-title";
+          name.textContent = "📁 " + (n.title || "Dossier");
+          const cnt = document.createElement("span");
+          cnt.className = "bm-url";
+          row.append(tog, cb, name, cnt);
+          wrap.appendChild(row);
+          if (open.has(n.nid) || q) {
+            const childWrap = document.createElement("div");
+            childWrap.className = "bm-children";
+            n.children.forEach((c) => { const el = renderNode(c); if (el) childWrap.appendChild(el); });
+            wrap.appendChild(childWrap);
+          }
+          return wrap;
+        };
+        tree.forEach((n) => { const el = renderNode(n); if (el) treeEl.appendChild(el); });
+        updateAll();
+      };
+
+      filterEl.addEventListener("input", renderTree);
+      renderTree();
+
+      $("#bmImport", box).addEventListener("click", () => {
+        if (!selected.size) { alert("Sélectionnez au moins un favori."); return; }
+        const useFav = $("#bmFav", box).checked;
+        const mkTile = (n) => ({
+          id: uid(), type: "link",
+          config: {
+            title: n.title || n.url,
+            url: n.url,
+            image: n.icon || "",          /* icône embarquée dans l'export, si présente */
+            favicon: useFav && !n.icon,   /* sinon : favicon du site via le service en ligne */
+            icon: "🌐",
+            newTab: true,
+          },
+        });
+
+        if (sel.value === "perFolder") {
+          /* Chaque dossier entièrement sélectionné devient son propre ensemble ;
+             les favoris sélectionnés hors de ces dossiers vont dans un ensemble commun. */
+          const loose = [];
+          const process = (nodes) => {
+            for (const n of nodes) {
+              if (n.type === "bookmark") { if (selected.has(n.nid)) loose.push(n); continue; }
+              const leaves = countLeaves(n);
+              if (leaves > 0 && countSelectedIn(n, selected) === leaves) {
+                const tiles = [];
+                walkTree(n.children, (c) => { if (c.type === "bookmark" && selected.has(c.nid)) tiles.push(c); });
+                state.groups.push({ id: uid(), title: n.title || "Dossier", logo: "", collapsed: false, tiles: tiles.map(mkTile) });
+              } else {
+                process(n.children);
+              }
+            }
+          };
+          process(tree);
+          if (loose.length) {
+            state.groups.push({ id: uid(), title: "Favoris importés", logo: "", collapsed: false, tiles: loose.map(mkTile) });
+          }
+        } else {
+          let gi;
+          if (sel.value === "new") {
+            state.groups.push({
+              id: uid(),
+              title: $("#bmNewGroup", box).value.trim() || "Favoris importés",
+              logo: "", collapsed: false, tiles: [],
+            });
+            gi = state.groups.length - 1;
+          } else gi = Number(sel.value);
+          walkTree(tree, (n) => { if (n.type === "bookmark" && selected.has(n.nid)) state.groups[gi].tiles.push(mkTile(n)); });
+        }
+        closeModal();
+        render();
+      });
+    }
+
+    /* --- Bouton 🔖 : choix du fichier d'export HTML des favoris --- */
+    $("#btnBookmarks").addEventListener("click", () => {
+      const file = document.createElement("input");
+      file.type = "file";
+      file.accept = ".html,.htm,text/html";
+      file.addEventListener("change", () => {
+        const f = file.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          let tree = null;
+          try { tree = parseBookmarks(reader.result); } catch { tree = null; }
+          if (!tree || !tree.length) {
+            alert("Aucun favori trouvé dans ce fichier.\nUtilisez l'export HTML de votre navigateur (Ctrl+Shift+O → « Exporter les favoris »).");
+            return;
+          }
+          openBookmarksModal(tree);
+        };
+        reader.readAsText(f);
+      });
+      file.click();
+    });
+
+    /* --- Formulaire d'ajout rapide (Ctrl+D, bookmarklet, capture URL) --- */
+    function openAddBookmarkModal(prefill = {}) {
+      if (!state.groups.length) { alert("Créez d'abord un ensemble de tuiles."); return; }
+      /* Destination par défaut : l'ensemble « Favoris » s'il existe, sinon le premier */
+      const favIdx = state.groups.findIndex((g) => (g.title || "").trim().toLowerCase() === "favoris");
+      openFormModal({
+        title: "Ajouter un favori à la startpage",
+        fields: [
+          { key: "url", label: "URL (accepte aussi « Titre | URL »)", type: "url" },
+          { key: "title", label: "Titre", type: "text" },
+          {
+            key: "group", label: "Section de destination", type: "select",
+            options: state.groups.map((g, i) => ({ value: String(i), label: g.title }))
+          },
+          { key: "newTab", label: "Ouvrir dans une nouvelle fenêtre", type: "checkbox" },
+          { key: "favicon", label: "Utiliser la favicon du site lié comme image", type: "checkbox" },
+          { key: "image", label: "Image (PNG / SVG / JPG) — remplace l'emoji", type: "image" },
+          { key: "icon", label: "Emoji / icône (si pas d'image)", type: "text" },
+        ],
+        values: { favicon: true, icon: "🌐", newTab: true, group: favIdx >= 0 ? String(favIdx) : undefined, ...prefill },
+        submitText: "Ajouter",
+        onSubmit: (v) => {
+          if (!v.url) { alert("Une URL est requise."); return; }
+          state.groups[Number(v.group)].tiles.push({
+            id: uid(), type: "link",
+            config: { title: v.title || v.url, url: v.url, newTab: v.newTab, favicon: v.favicon, image: v.image, icon: v.icon },
+          });
+          render();
+        },
+      });
+    }
+
+    /* Ctrl+D (ou Cmd+D) sur la startpage : ouvre le formulaire d'ajout rapide */
+    document.addEventListener("keydown", (ev) => {
+      if ((ev.ctrlKey || ev.metaKey) && !ev.shiftKey && !ev.altKey && ev.key.toLowerCase() === "d") {
+        ev.preventDefault();
+        openAddBookmarkModal();
+      }
+    });
+
+    /* Ouverture depuis le bookmarklet : #add=<url>&t=<titre> pré-remplit le formulaire */
+    (function captureFromHash() {
+      const hm = (location.hash || "").match(/add=([^&]*)/);
+      if (!hm) return;
+      const url = decodeURIComponent(hm[1] || "");
+      const tm = (location.hash || "").match(/&t=([^&]*)/);
+      const title = tm ? decodeURIComponent(tm[1] || "") : "";
+      try { history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ }
+      if (url) openAddBookmarkModal({ url, title });
+    })();
+
+    /* --- Bouton 📌 : génère le bookmarklet d'ajout depuis n'importe quel site --- */
+    $("#btnBookmarklet").addEventListener("click", () => {
+      const base = JSON.stringify(location.href.split("#")[0]);
+      /* String.fromCharCode(35) évite un '#' littéral, qui casserait l'URL javascript: */
+      const code = "javascript:void(function(){var s=" + base + ",h=String.fromCharCode(35);" +
+        "var w=window.open(s+h+'add='+encodeURIComponent(location.href)+'&t='+encodeURIComponent(document.title),'_blank');" +
+        "if(!w){try{navigator.clipboard.writeText(document.title+' | '+location.href);" +
+        "alert('Ouverture de la startpage bloquée. Titre et URL copiés : ouvrez la startpage, faites Ctrl+D et collez dans le champ URL (format Titre | URL reconnu).');}" +
+        "catch(e){alert('Ajoutez ce site manuellement sur la startpage (Ctrl+D).');}}})()";
+      openModal(`
+    <h3>Ajouter la page courante à la startpage</h3>
+    <div class="bm-help">
+      <p><strong>Glissez ce lien dans la barre de favoris</strong> de votre navigateur
+      (ou faites Ctrl+D sur cette page pour l'y enregistrer comme favori) :</p>
+      <a class="bm-bookmarklet" href="${esc(code)}">📌 Ajouter à ma startpage</a>
+      <p>Ensuite, sur n'importe quel site, cliquez ce favori : la startpage s'ouvre
+      avec l'URL et le titre <em>pré-remplis</em> — il ne reste qu'à choisir la section
+      et valider.</p>
+      <p>Sur la startpage elle-même, <kbd>Ctrl+D</kbd> ouvre directement le formulaire.</p>
+      <p>ℹ️ Pour ajouter le site <em>aussi</em> aux favoris du navigateur, utilisez le
+      <kbd>Ctrl+D</kbd> natif du navigateur sur ce site : une page web ne peut pas
+      écrire dans vos favoris (règle de sécurité).</p>
+      <p>ℹ️ Si la startpage est ouverte en <code>file://</code>, certains navigateurs
+      bloquent l'ouverture automatique : dans ce cas le favori copie
+      « Titre | URL » dans le presse-papiers — ouvrez la startpage, faites
+      <kbd>Ctrl+D</kbd> et collez dans le <strong>champ URL</strong> : le format
+      combiné est reconnu et découpé automatiquement. Servir la page en
+      <code>http://</code> (hébergement ou serveur local) évite cette limite.</p>
+    </div>
+    <div class="modal-actions"><button class="btn" data-close>Fermer</button></div>`);
+      $("[data-close]", box).addEventListener("click", closeModal);
+    });
+
+    window.addEventListener("scroll", () => {
+      $("#topbar")?.classList.toggle(
+        "scrolled",
+        window.scrollY > 10
+      );
+    });
+
+    /* Modale note */
+    $("#btnCloseNoteEditor")
+      .addEventListener(
+        "click",
+        closeNoteEditor
+      );
+
+    $("#btnCancelNoteEditor")
+      .addEventListener(
+        "click",
+        closeNoteEditor
+      );
+
+    $("#btnSaveNoteEditor")
+      .addEventListener(
+        "click",
+        saveNoteEditor
+      );
+
+    let noteEditorBackdropPressed = false;
+    $("#noteEditorOverlay").addEventListener("pointerdown", (ev) => {
+      noteEditorBackdropPressed = ev.target === $("#noteEditorOverlay");
+    });
+    $("#noteEditorOverlay").addEventListener("pointerup", (ev) => {
+      const releasedOnBackdrop = ev.target === $("#noteEditorOverlay");
+      if (noteEditorBackdropPressed && releasedOnBackdrop) closeNoteEditor();
+      noteEditorBackdropPressed = false;
+    });
+    $("#noteEditorOverlay").addEventListener("pointercancel", () => { noteEditorBackdropPressed = false; });
+
+    $("#noteEditorText")
+      .addEventListener("keydown", (ev) => {
+
+        if (ev.key === "Escape") {
+          closeNoteEditor();
+        }
+
+        if (
+          ev.ctrlKey &&
+          ev.key === "Enter"
+        ) {
+          saveNoteEditor();
+        }
+
+      });
+
+
+
+    /* ================================================================
+       CALENDRIER TOPBAR
+       - Vue mensuelle lundi -> dimanche avec numéros de semaine ISO.
+       - Jours fériés : calendrier.api.gouv.fr.
+       - Vacances scolaires : API ouverte de l'Éducation nationale.
+       - Événements personnels : URL ou fichier ICS/iCal, conservés localement.
+    ================================================================ */
+    const CALENDAR_STORAGE_KEY = "startpage.calendar.v1";
+    const calendarData = {
+      view: new Date(), viewMode: "month",
+      holidays: {}, school: [], personal: [], loadedHolidayYears: new Set(), schoolLoaded: false,
+      settings: { showHolidays: true, showSchool: true, schoolZone: "Zone C", icsUrl: "" },
+    };
+
+    function calendarDateKey(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+    function calendarParseDate(value) {
+      const v = String(value || "").trim();
+      const m = v.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?Z?)?/);
+      if (!m) return null;
+      return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4] || 0), Number(m[5] || 0), Number(m[6] || 0));
+    }
+    function calendarAddDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+    function calendarStartOfWeek(d) { const x = new Date(d); const day = x.getDay() || 7; x.setDate(x.getDate() - day + 1); x.setHours(0, 0, 0, 0); return x; }
+    function calendarIsoWeek(d) { return isoWeek(d); }
+    function calendarLoadLocal() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(CALENDAR_STORAGE_KEY) || "null");
+        if (!saved) return;
+        calendarData.settings = { ...calendarData.settings, ...(saved.settings || {}) };
+        calendarData.personal = Array.isArray(saved.personal) ? saved.personal : [];
+      } catch { /* configuration calendrier absente ou invalide */ }
+    }
+    function calendarSaveLocal() {
+      localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify({ settings: calendarData.settings, personal: calendarData.personal }));
+    }
+    function calendarSetStatus(text, error = false) {
+      const el = $("#calendarStatus"); el.textContent = text || ""; el.style.color = error ? "#e05252" : "";
+    }
+
+    function calendarUnfoldIcs(text) { return String(text || "").replace(/\r?\n[ \t]/g, ""); }
+    function calendarDecodeIcsText(text) { return String(text || "").replace(/\\n/gi, "\n").replace(/\\,/g, ",").replace(/\\;/g, ";").replace(/\\\\/g, "\\"); }
+    function parseIcsCalendar(text, source = "personal") {
+      const blocks = calendarUnfoldIcs(text).split("BEGIN:VEVENT").slice(1);
+      const events = [];
+      for (const block of blocks) {
+        const content = block.split("END:VEVENT")[0] || "";
+        const read = (name) => {
+          const line = content.split(/\r?\n/).find(l => l.toUpperCase().startsWith(name));
+          return line ? line.slice(line.indexOf(":") + 1).trim() : "";
+        };
+        const startRaw = read("DTSTART"), endRaw = read("DTEND");
+        const start = calendarParseDate(startRaw); if (!start) continue;
+        let end = calendarParseDate(endRaw) || new Date(start);
+        const allDay = /^\d{8}$/.test(startRaw);
+        if (allDay && endRaw) end = calendarAddDays(end, -1); // DTEND iCal est exclusif pour les journées entières
+        events.push({ id: read("UID") || uid(), title: calendarDecodeIcsText(read("SUMMARY") || "Événement"), start: start.toISOString(), end: end.toISOString(), allDay, source });
+      }
+      return events;
+    }
+
+    async function calendarLoadHolidayYear(year) {
+      if (calendarData.loadedHolidayYears.has(year)) return;
+      const response = await fetch(`https://calendrier.api.gouv.fr/jours-feries/metropole/${year}.json`);
+      if (!response.ok) throw new Error("Jours fériés indisponibles");
+      Object.assign(calendarData.holidays, await response.json());
+      calendarData.loadedHolidayYears.add(year);
+    }
+    const SCHOOL_ICS_URLS = {
+      "Zone A": "https://fr.ftp.opendatasoft.com/openscol/fr-en-calendrier-scolaire/Zone-A.ics",
+      "Zone B": "https://fr.ftp.opendatasoft.com/openscol/fr-en-calendrier-scolaire/Zone-B.ics",
+      "Zone C": "https://fr.ftp.opendatasoft.com/openscol/fr-en-calendrier-scolaire/Zone-C.ics",
+      "Corse": "https://fr.ftp.opendatasoft.com/openscol/fr-en-calendrier-scolaire/Corse.ics",
+    };
+    async function calendarLoadSchool() {
+      const zone = calendarData.settings.schoolZone;
+      const api = `https://data.education.gouv.fr/api/records/1.0/search/?dataset=fr-en-calendrier-scolaire&rows=1000&refine.zones=${encodeURIComponent(zone)}`;
+      let events = [];
+      try {
+        const response = await fetch(api);
+        if (!response.ok) throw new Error(`API scolaire HTTP ${response.status}`);
+        const data = await response.json();
+        const seen = new Set();
+        events = (data.records || []).map(record => record.fields || {}).filter(r => {
+          const key = `${r.description}|${r.start_date}|${r.end_date}|${r.zones}`;
+          if (!r.start_date || !r.end_date || seen.has(key)) return false;
+          seen.add(key); return true;
+        }).map(r => ({
+          id: `school-${r.description}-${r.start_date}-${r.end_date}-${r.zones}`,
+          title: r.description || "Vacances scolaires",
+          start: r.start_date,
+          end: r.end_date,
+          allDay: true,
+          source: "school"
+        }));
+      } catch (apiError) {
+        const fallbackUrl = SCHOOL_ICS_URLS[zone];
+        if (!fallbackUrl) throw apiError;
+        const response = await fetch(fallbackUrl);
+        if (!response.ok) throw apiError;
+        events = parseIcsCalendar(await response.text(), "school");
+      }
+      if (!events.length) throw new Error(`Aucune période scolaire reçue pour ${zone}`);
+      calendarData.school = events;
+      calendarData.schoolLoaded = true;
+    }
+    function calendarEventTouchesDay(ev, day) {
+      const start = new Date(ev.start), end = new Date(ev.end || ev.start);
+      const a = new Date(day); a.setHours(0, 0, 0, 0);
+      const b = calendarAddDays(a, 1);
+      return start < b && end >= a;
+    }
+    function calendarEventsForDay(day) {
+      const key = calendarDateKey(day), out = [];
+      if (calendarData.settings.showHolidays && calendarData.holidays[key]) out.push({ title: calendarData.holidays[key], source: "holiday" });
+      if (calendarData.settings.showSchool) for (const ev of calendarData.school) if (calendarEventTouchesDay(ev, day)) out.push(ev);
+      for (const ev of calendarData.personal) if (calendarEventTouchesDay(ev, day)) out.push(ev);
+      return out;
+    }
+    async function calendarEnsureData() {
+      const year = calendarData.view.getFullYear();
+      const tasks = [];
+      if (calendarData.settings.showHolidays) tasks.push(calendarLoadHolidayYear(year - 1), calendarLoadHolidayYear(year), calendarLoadHolidayYear(year + 1));
+      if (calendarData.settings.showSchool && !calendarData.schoolLoaded) tasks.push(calendarLoadSchool());
+      const results = await Promise.allSettled(tasks);
+      if (results.some(r => r.status === "rejected")) calendarSetStatus("Certaines sources en ligne n’ont pas pu être chargées. Les fichiers ICS locaux restent disponibles.", true);
+    }
+    function renderCalendar() {
+      const selected = new Date(calendarData.view);
+      const isWeek = calendarData.viewMode === "week";
+      const periodStart = calendarStartOfWeek(selected);
+      const monthEnd = new Date(selected.getFullYear(), selected.getMonth() + 1, 0);
+      const periodEnd = isWeek
+        ? calendarAddDays(periodStart, 6)
+        : calendarAddDays(periodStart, 41); // six semaines complètes
+      const todayKey = calendarDateKey(new Date());
+
+      if (isWeek) {
+        const endLabel = periodEnd.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+        const startLabel = periodStart.toLocaleDateString("fr-FR", { day: "numeric", month: periodStart.getMonth() === periodEnd.getMonth() ? undefined : "long" });
+        $("#calendarMonthTitle").textContent = `Semaine ${calendarIsoWeek(periodStart)} · ${startLabel} – ${endLabel}`;
+      } else {
+        const firstMonth = periodStart.toLocaleDateString("fr-FR", { month: "long" });
+        const lastMonth = periodEnd.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+        $("#calendarMonthTitle").textContent = firstMonth === periodEnd.toLocaleDateString("fr-FR", { month: "long" })
+          ? periodStart.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+          : `${firstMonth} – ${lastMonth}`;
+      }
+
+      $("#calendarMonthView").classList.toggle("active", !isWeek);
+      $("#calendarWeekView").classList.toggle("active", isWeek);
+      const grid = $("#calendarGrid");
+      grid.classList.toggle("week-view", isWeek);
+      grid.innerHTML = "";
+      ["Sem.", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].forEach((name, i) => {
+        const h = document.createElement("div");
+        h.className = i ? "calendar-day-head" : "calendar-week-head";
+        h.textContent = name;
+        grid.appendChild(h);
+      });
+
+      for (let weekStart = new Date(periodStart); weekStart <= periodEnd; weekStart = calendarAddDays(weekStart, 7)) {
+        const wn = document.createElement("div");
+        wn.className = "calendar-week-number";
+        wn.textContent = "S" + calendarIsoWeek(weekStart);
+        grid.appendChild(wn);
+        for (let i = 0; i < 7; i++) {
+          const day = calendarAddDays(weekStart, i), key = calendarDateKey(day);
+          const cell = document.createElement("div");
+          cell.className = "calendar-day";
+          if (!isWeek && day.getMonth() !== selected.getMonth()) cell.classList.add("outside");
+          if (key === todayKey) cell.classList.add("today");
+          const n = document.createElement("span");
+          n.className = "calendar-day-number";
+          n.textContent = day.getDate();
+          n.title = day.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+          cell.appendChild(n);
+          const list = document.createElement("div");
+          list.className = "calendar-events";
+          const maxEvents = isWeek ? 14 : 4;
+          calendarEventsForDay(day).slice(0, maxEvents).forEach(ev => {
+            const e = document.createElement("div");
+            e.className = `calendar-event ${ev.source || "personal"}`;
+            e.textContent = ev.title;
+            e.title = ev.title;
+            if ((ev.source || "personal") === "personal") {
+              const del = document.createElement("button");
+              del.type = "button";
+              del.className = "calendar-event-delete";
+              del.textContent = "×";
+              del.title = "Supprimer cet événement personnel";
+              del.addEventListener("click", clickEvent => {
+                clickEvent.stopPropagation();
+                calendarData.personal = calendarData.personal.filter(item => item.id !== ev.id);
+                calendarSaveLocal();
+                renderCalendar();
+                calendarSetStatus("Événement personnel supprimé.");
+              });
+              e.appendChild(del);
+            }
+            list.appendChild(e);
+          });
+          cell.appendChild(list);
+          grid.appendChild(cell);
+        }
+      }
+      const todayCell = grid.querySelector(".calendar-day.today");
+      if (todayCell) todayCell.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+    async function openCalendar() {
+      calendarData.view = new Date();
+      $("#calendarShowHolidays").checked = calendarData.settings.showHolidays;
+      $("#calendarShowSchool").checked = calendarData.settings.showSchool;
+      $("#calendarSchoolZone").value = calendarData.settings.schoolZone;
+      $("#calendarIcsUrl").value = calendarData.settings.icsUrl || "";
+      $("#calendarOverlay").classList.add("open"); $("#calendarOverlay").setAttribute("aria-hidden", "false");
+      renderCalendar(); await calendarEnsureData(); renderCalendar();
+    }
+    function closeCalendar() { $("#calendarOverlay").classList.remove("open"); $("#calendarOverlay").setAttribute("aria-hidden", "true"); }
+    async function calendarImportText(text, label = "calendrier") {
+      const events = parseIcsCalendar(text, "personal");
+      if (!events.length) throw new Error("Aucun événement VEVENT trouvé");
+      const byId = new Map(calendarData.personal.map(ev => [ev.id, ev]));
+      events.forEach(ev => byId.set(ev.id, ev));
+      calendarData.personal = [...byId.values()]; calendarSaveLocal(); renderCalendar();
+      calendarSetStatus(`${events.length} événement(s) chargé(s) depuis ${label}.`);
+    }
+
+    calendarLoadLocal();
+    $("#pageDate").setAttribute("tabindex", "0");
+    $("#pageDate").setAttribute("role", "button");
+    $("#pageDate").title = "Ouvrir le calendrier";
+    $("#pageDate").addEventListener("click", openCalendar);
+    $("#pageDate").addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); openCalendar(); } });
+    $("#calendarClose").addEventListener("click", closeCalendar);
+    $("#calendarOverlay").addEventListener("click", ev => { if (ev.target === $("#calendarOverlay")) closeCalendar(); });
+    async function calendarNavigate(direction) {
+      if (calendarData.viewMode === "week") calendarData.view = calendarAddDays(calendarData.view, direction * 7);
+      else calendarData.view.setMonth(calendarData.view.getMonth() + direction);
+      renderCalendar(); await calendarEnsureData(); renderCalendar();
+    }
+    $("#calendarPrev").addEventListener("click", () => calendarNavigate(-1));
+    $("#calendarNext").addEventListener("click", () => calendarNavigate(1));
+    $("#calendarToday").addEventListener("click", async () => { calendarData.view = new Date(); renderCalendar(); await calendarEnsureData(); renderCalendar(); });
+    $("#calendarMonthView").addEventListener("click", async () => { calendarData.viewMode = "month"; renderCalendar(); await calendarEnsureData(); renderCalendar(); });
+    $("#calendarWeekView").addEventListener("click", async () => { calendarData.viewMode = "week"; renderCalendar(); await calendarEnsureData(); renderCalendar(); });
+    $("#calendarShowHolidays").addEventListener("change", async ev => { calendarData.settings.showHolidays = ev.target.checked; calendarSaveLocal(); await calendarEnsureData(); renderCalendar(); });
+    $("#calendarShowSchool").addEventListener("change", async ev => { calendarData.settings.showSchool = ev.target.checked; calendarSaveLocal(); await calendarEnsureData(); renderCalendar(); });
+    $("#calendarSchoolZone").addEventListener("change", async ev => { calendarData.settings.schoolZone = ev.target.value; calendarData.schoolLoaded = false; calendarData.school = []; calendarSaveLocal(); await calendarEnsureData(); renderCalendar(); });
+    $("#calendarLoadFile").addEventListener("click", () => $("#calendarIcsFile").click());
+    $("#calendarIcsFile").addEventListener("change", async ev => { const file = ev.target.files[0]; if (!file) return; try { await calendarImportText(await file.text(), file.name); } catch (e) { calendarSetStatus(e.message, true); } ev.target.value = ""; });
+    $("#calendarLoadUrl").addEventListener("click", async () => {
+      const url = $("#calendarIcsUrl").value.trim(); if (!url) return calendarSetStatus("Saisissez une adresse ICS/iCal.", true);
+      calendarData.settings.icsUrl = url; calendarSaveLocal(); calendarSetStatus("Chargement du calendrier…");
+      try { const r = await fetch(url); if (!r.ok) throw new Error(`Erreur HTTP ${r.status}`); await calendarImportText(await r.text(), "l’URL"); }
+      catch (e) { calendarSetStatus("Chargement impossible depuis cette URL. Le serveur doit autoriser les requêtes du navigateur (CORS). Vous pouvez importer le fichier .ics à la place.", true); }
+    });
+    function calendarShiftWeek(direction) {
+      calendarData.view = calendarAddDays(calendarData.view, direction * 7);
+      renderCalendar();
+      calendarEnsureData().then(renderCalendar);
+    }
+    $("#calendarWeekUp").addEventListener("click", () => calendarShiftWeek(-1));
+    $("#calendarWeekDown").addEventListener("click", () => calendarShiftWeek(1));
+    let calendarWheelLock = false;
+    $(".calendar-main").addEventListener("wheel", ev => {
+      if (calendarData.viewMode !== "month" || Math.abs(ev.deltaY) < 18 || calendarWheelLock) return;
+      ev.preventDefault();
+      calendarWheelLock = true;
+      calendarShiftWeek(ev.deltaY > 0 ? 1 : -1);
+      setTimeout(() => { calendarWheelLock = false; }, 220);
+    }, { passive: false });
+
+    $("#calendarLoadPreset").addEventListener("click", async () => {
+      const preset = $("#calendarSourcePreset").value;
+      try {
+        if (preset === "holidays") {
+          calendarData.settings.showHolidays = true; $("#calendarShowHolidays").checked = true;
+          await calendarEnsureData(); renderCalendar(); calendarSetStatus("Jours fériés officiels chargés.");
+        } else if (preset.startsWith("school")) {
+          const zoneMap = { "school-zone-a": "Zone A", "school-zone-b": "Zone B", "school-zone-c": "Zone C" };
+          if (zoneMap[preset]) { calendarData.settings.schoolZone = zoneMap[preset]; $("#calendarSchoolZone").value = zoneMap[preset]; }
+          calendarData.settings.showSchool = true; $("#calendarShowSchool").checked = true;
+          calendarData.schoolLoaded = false; calendarData.school = [];
+          await calendarEnsureData(); renderCalendar(); calendarSetStatus(`Vacances scolaires ${calendarData.settings.schoolZone} chargées.`);
+        } else {
+          $("#calendarIcsUrl").focus(); calendarSetStatus("Saisissez l’adresse du calendrier ICS/iCal, ou importez un fichier.");
+        }
+        calendarSaveLocal();
+      } catch (e) { calendarSetStatus(e.message || "Source indisponible.", true); }
+    });
+
+    function calendarLocalDateTimeValue(d) {
+      const pad = n => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+    $("#calendarAddEvent").addEventListener("click", () => {
+      const start = new Date(calendarData.view); start.setHours(9, 0, 0, 0);
+      const end = new Date(start); end.setHours(10, 0, 0, 0);
+      $("#calendarEventStart").value = calendarLocalDateTimeValue(start);
+      $("#calendarEventEnd").value = calendarLocalDateTimeValue(end);
+      $("#calendarEventTitle").value = ""; $("#calendarEventDescription").value = "";
+      $("#calendarEventForm").classList.add("open"); $("#calendarEventTitle").focus();
+    });
+    $("#calendarCancelEvent").addEventListener("click", () => $("#calendarEventForm").classList.remove("open"));
+    $("#calendarEventForm").addEventListener("submit", ev => {
+      ev.preventDefault();
+      const title = $("#calendarEventTitle").value.trim();
+      const start = new Date($("#calendarEventStart").value);
+      const endValue = $("#calendarEventEnd").value;
+      const end = endValue ? new Date(endValue) : new Date(start);
+      if (!title || isNaN(start)) return calendarSetStatus("Le titre et la date de début sont obligatoires.", true);
+      calendarData.personal.push({ id: uid(), title, description: $("#calendarEventDescription").value.trim(), start: start.toISOString(), end: end.toISOString(), allDay: false, source: "personal", local: true });
+      calendarSaveLocal(); $("#calendarEventForm").classList.remove("open"); renderCalendar(); calendarSetStatus("Événement personnalisé ajouté.");
+    });
+
+    $("#calendarClearPersonal").addEventListener("click", () => { calendarData.personal = []; calendarSaveLocal(); renderCalendar(); calendarSetStatus("Événements personnels effacés."); });
+    document.addEventListener("keydown", ev => { if (ev.key === "Escape" && $("#calendarOverlay").classList.contains("open")) closeCalendar(); });
+
+
+    $("#noteEditorTitleInput").addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") closeNoteEditor();
+      if (ev.ctrlKey && ev.key === "Enter") saveNoteEditor();
+    });
+
+    ensureSearchEngineCatalog();
+    /* Rendu initial */
+    render();
+  </script>
+</body>
+
+</html>
